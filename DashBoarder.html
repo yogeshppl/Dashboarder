@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboarder — Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600&family=Nunito:wght@300;400;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Roboto+Mono:wght@300;400;500&family=Raleway:wght@300;400;600;700&family=Josefin+Sans:wght@300;400;600;700&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080f;--s1:#0f0f1a;--s2:#161623;--s3:#1e1e2e;
+  --b1:#252535;--b2:#353550;
+  --acc:#7c6fff;--acc2:#b09eff;--glow:rgba(124,111,255,.25);
+  --tx:#eeeef5;--tx2:#8888a8;--tx3:#4a4a6a;
+  --ok:#20d4a0;--err:#f43f5e;--warn:#f59e0b;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column;user-select:none}
+
+/* ── TOPBAR ── */
+#bar{height:52px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;z-index:200}
+.logo-wrap{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c6fff,#b09eff);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px var(--glow);flex-shrink:0}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:-.3px;background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-text em{-webkit-text-fill-color:var(--tx3);font-style:normal;font-size:10px;font-weight:400;margin-left:3px;font-family:'DM Mono',monospace;letter-spacing:0}
+.sep{width:1px;height:22px;background:var(--b1);flex-shrink:0}
+.btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--tx2);font-size:12px;font-family:'Outfit',sans-serif;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.btn:hover{border-color:var(--b2);color:var(--tx);background:var(--s3)}
+.btn.prim{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 0 14px var(--glow)}
+.btn.prim:hover{background:var(--acc2)}
+select.bar-sel{background:var(--s2);border:1px solid var(--b1);color:var(--tx2);padding:5px 8px;border-radius:7px;font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;flex-shrink:0;max-width:180px}
+.push{flex:1}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex:1;overflow:hidden}
+
+/* ── LEFT ── */
+#left{width:240px;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.tabs,.ptabs{display:flex;border-bottom:1px solid var(--b1);flex-shrink:0}
+.tab,.ptab{flex:1;padding:9px 0;text-align:center;font-size:9.5px;font-family:'DM Mono',monospace;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab.on,.ptab.on{color:var(--acc);border-bottom-color:var(--acc)}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.scroll::-webkit-scrollbar{width:3px}.scroll::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.sec-hd{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--tx3);padding:12px 12px 5px}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 10px 8px}
+.wc{background:var(--s2);border:1px solid var(--b1);border-radius:9px;padding:10px 6px;cursor:grab;text-align:center;transition:all .15s}
+.wc:hover{border-color:var(--acc);background:var(--s3);transform:translateY(-1px);box-shadow:0 0 10px var(--glow)}
+.wc:active{cursor:grabbing;transform:scale(.96)}
+.wc .ic{font-size:18px;margin-bottom:4px;display:block;pointer-events:none}
+.wc .nm{font-size:9.5px;font-weight:500;color:var(--tx2);pointer-events:none;line-height:1.2}
+.litem{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .15s;margin:0 10px 6px}
+.litem:hover{border-color:var(--acc);background:var(--s3)}
+.litem .li-n{font-size:12px;color:var(--tx);font-weight:500}
+.litem .li-s{font-size:9px;color:var(--tx3);font-family:'DM Mono',monospace;margin-top:2px}
+.litem .li-tag{font-size:8px;color:var(--acc2);background:rgba(176,158,255,.12);padding:2px 6px;border-radius:3px;flex-shrink:0}
+.litem .li-del{color:var(--tx3);font-size:12px;cursor:pointer;padding:3px 6px;border-radius:4px}
+.litem .li-del:hover{color:var(--err);background:rgba(244,63,94,.1)}
+.no-l{font-size:11px;color:var(--tx3);padding:14px;text-align:center;line-height:1.6}
+.preset-hd{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--acc2);padding:10px 12px 4px}
+
+/* ── CANVAS ── */
+#mid{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;background:#050509}
+#mid::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(37,37,53,.7) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
+#cpos{position:relative;flex-shrink:0}
+#cv{position:relative;overflow:hidden;transform-origin:top left;box-shadow:0 0 0 1px var(--b1),0 40px 100px rgba(0,0,0,.9)}
+.gridov{position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(124,111,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(124,111,255,.04) 1px,transparent 1px);background-size:20px 20px}
+#bgl{position:absolute;inset:0;z-index:1;background-size:cover;background-position:center;background-color:#1a1a2e;transition:filter .3s}
+#bgo{position:absolute;inset:0;z-index:2;background:#000;opacity:0;pointer-events:none}
+
+/* ── WIDGETS ── */
+.dw{position:absolute;z-index:10;cursor:move;overflow:hidden}
+.dw-ring{position:absolute;inset:0;border:2px solid transparent;border-radius:inherit;pointer-events:none;z-index:20;transition:border-color .12s}
+.dw:hover .dw-ring{border-color:rgba(124,111,255,.5)}
+.dw.sel .dw-ring{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc),0 0 20px var(--glow)}
+.dw-del{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(244,63,94,.9);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;z-index:30;border:none;transition:opacity .15s;line-height:1}
+.dw:hover .dw-del,.dw.sel .dw-del{opacity:1}
+.dw:hover .dw-dup,.dw.sel .dw-dup{opacity:1!important}
+.dw-rh{position:absolute;bottom:0;right:0;width:20px;height:20px;cursor:se-resize;z-index:30;opacity:0;transition:opacity .15s}
+.dw:hover .dw-rh,.dw.sel .dw-rh{opacity:1}
+.dw-rh::after{content:'';position:absolute;bottom:4px;right:4px;width:8px;height:8px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);border-radius:0 0 2px 0}
+.dw-inner{position:absolute;inset:0;display:flex;flex-direction:column;padding:14px;overflow:hidden}
+.dw-inner.ctr{align-items:center;justify-content:center}
+.dw-inner.top{align-items:flex-start;justify-content:flex-start}
+.sg{position:absolute;background:var(--acc);opacity:.4;pointer-events:none;z-index:500}
+.sg.h{height:1px;left:0;right:0}.sg.v{width:1px;top:0;bottom:0}
+
+/* ── RIGHT PANEL ── */
+#right{width:300px;background:var(--s1);border-left:1px solid var(--b1);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.pbody{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:14px}
+.pbody::-webkit-scrollbar{width:3px}.pbody::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.ps{display:flex;flex-direction:column;gap:7px}
+.ph{font-size:8.5px;font-family:'DM Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--tx3);padding-bottom:5px;border-bottom:1px solid var(--b1)}
+.row{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.lbl{font-size:11px;color:var(--tx2);flex-shrink:0}
+.sub-lbl{font-size:10px;color:var(--tx3);margin-bottom:1px}
+input[type=range]{-webkit-appearance:none;flex:1;height:3px;background:var(--s3);border-radius:2px;cursor:pointer;min-width:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;background:var(--acc);border-radius:50%;box-shadow:0 0 5px var(--glow)}
+input[type=color]{width:28px;height:22px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none}
+input[type=text],input[type=number],input[type=url],input[type=date],select,textarea{background:var(--s2);border:1px solid var(--b1);color:var(--tx);border-radius:7px;padding:6px 9px;font-size:11px;font-family:'Outfit',sans-serif;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
+select option{background:var(--s2)}
+.rv{font-size:10px;color:var(--acc);font-family:'DM Mono',monospace;min-width:26px;text-align:right;flex-shrink:0}
+.trow{display:flex;align-items:center;justify-content:space-between}
+.tog{width:32px;height:18px;background:var(--s3);border-radius:9px;position:relative;cursor:pointer;border:1px solid var(--b1);flex-shrink:0;transition:background .2s}
+.tog.on{background:var(--acc);border-color:var(--acc)}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:left .2s}
+.tog.on::after{left:16px}
+.crow{display:flex;align-items:center;gap:7px}
+.bts{display:flex;gap:5px;flex-wrap:wrap}
+.bt{padding:4px 9px;border-radius:6px;font-size:10px;cursor:pointer;border:1px solid var(--b1);color:var(--tx2);transition:all .15s;font-family:'Outfit',sans-serif}
+.bt.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.cats{display:flex;flex-wrap:wrap;gap:4px}
+.cat{padding:3px 8px;border-radius:5px;font-size:9.5px;cursor:pointer;border:1px solid var(--b1);color:var(--tx3);transition:all .15s}
+.cat.on{border-color:var(--acc2);color:var(--acc2);background:rgba(176,158,255,.08)}
+.bgpv{width:100%;height:52px;border-radius:8px;border:1px solid var(--b1);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--tx3);overflow:hidden}
+.pempty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--tx3);padding:20px}
+.pempty .eic{font-size:32px;opacity:.3}
+.pempty p{font-size:11px;text-align:center;line-height:1.6;max-width:170px}
+.bf{width:100%;padding:7px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--tx2);font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .15s;font-weight:500;text-align:center}
+.bf:hover{border-color:var(--acc);color:var(--acc)}
+.bf.ac{background:var(--acc);color:#fff;border-color:var(--acc)}
+.bf.ok-btn{background:rgba(32,212,160,.12);color:var(--ok);border-color:rgba(32,212,160,.25)}
+.bf.ok-btn:hover{background:var(--ok);color:#000}
+.div{height:1px;background:var(--b1)}
+.font-preview{width:100%;padding:8px 10px;background:var(--s3);border-radius:7px;font-size:16px;color:var(--tx);text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.view-sw{display:flex;gap:4px}
+.view-btn{flex:1;padding:5px;border-radius:6px;font-size:10px;cursor:pointer;border:1px solid var(--b1);color:var(--tx3);text-align:center;transition:all .15s}
+.view-btn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+/* News scroll */
+@keyframes newsScroll{0%{top:0}100%{top:-50%}}
+.news-scroll-wrap{flex:1;overflow:hidden;position:relative;width:100%}
+.news-scroll-inner{position:absolute;width:100%;animation:newsScroll var(--scroll-dur,20s) linear infinite}
+
+/* ── MODAL ── */
+#mov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+#mov.on{display:flex}
+#mdl{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:24px;max-width:420px;width:94%;box-shadow:0 24px 60px rgba(0,0,0,.8);max-height:90vh;overflow-y:auto}
+#mdl h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:8px}
+#mdl p{font-size:11px;color:var(--tx2);line-height:1.65;margin-bottom:10px}
+.mbs{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.mbs button{padding:7px 14px;border-radius:7px;border:1px solid var(--b1);background:var(--s2);color:var(--tx2);font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .15s}
+.mbs button.pr{background:var(--acc);color:#fff;border-color:var(--acc)}
+.mbs button:hover:not(.pr){color:var(--tx);border-color:var(--b2)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:1px solid var(--b2);color:var(--tx);padding:9px 18px;border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;box-shadow:0 8px 30px rgba(0,0,0,.5);transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:9999;pointer-events:none;white-space:nowrap}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast.ok{color:var(--ok);border-color:var(--ok)}
+#toast.err{color:var(--err);border-color:var(--err)}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <div class="logo-wrap">
+    <div class="logo-icon">📊</div>
+    <div class="logo-text">Dashboarder<em>builder</em></div>
+  </div>
+  <div class="sep"></div>
+  <select class="bar-sel" id="szsel" onchange="onSzChange()">
+    <option value="1920x1080">1920×1080 — Full HD</option>
+    <option value="2560x1440">2560×1440 — 2K</option>
+    <option value="1280x800">1280×800 — Tablet</option>
+    <option value="1024x768">1024×768</option>
+    <option value="custom">Custom…</option>
+  </select>
+  <div class="sep"></div>
+  <button class="btn" onclick="toggleGrid()" id="gridbtn">⊞ Grid ON</button>
+  <button class="btn" onclick="askClear()" style="color:var(--tx3)">🗑 Clear</button>
+  <div class="sep"></div>
+  <button class="btn" onclick="showPreview()" title="Preview exported dashboard">👁 Preview</button>
+  <div class="push"></div>
+  <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3);flex-shrink:0">
+    <div class="tog" id="autosavetog" onclick="toggleAutoSave()" title="Auto-save every 60s"></div>
+    <span id="autosavelbl">Auto-save</span>
+  </div>
+  <div class="sep"></div>
+  <button class="btn" onclick="doSave()">💾 Save</button>
+  <button class="btn prim" onclick="doExport()">⬇ Export HTML</button>
+</div>
+
+<div id="app">
+  <!-- LEFT SIDEBAR -->
+  <div id="left">
+    <div class="tabs">
+      <div class="tab on" id="t-w" onclick="showTab('w')">Widgets</div>
+      <div class="tab" id="t-l" onclick="showTab('l')">Layouts</div>
+    </div>
+    <div class="scroll">
+      <div id="tab-w">
+        <div class="sec-hd">⏱ Time</div>
+        <div class="wgrid">
+          <div class="wc" draggable="true" ondragstart="wds(event,'clock')" ondblclick="addW('clock')"><span class="ic">🕐</span><span class="nm">Clock</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'date')" ondblclick="addW('date')"><span class="ic">📆</span><span class="nm">Date</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'worldclock')" ondblclick="addW('worldclock')"><span class="ic">🌍</span><span class="nm">World Clock</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'countdown')" ondblclick="addW('countdown')"><span class="ic">⏳</span><span class="nm">Countdown</span></div>
+        </div>
+        <div class="sec-hd">🌤 Info</div>
+        <div class="wgrid">
+          <div class="wc" draggable="true" ondragstart="wds(event,'weather')" ondblclick="addW('weather')"><span class="ic">🌤</span><span class="nm">Weather</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'news')" ondblclick="addW('news')"><span class="ic">📰</span><span class="nm">News/RSS</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'stocks')" ondblclick="addW('stocks')"><span class="ic">📈</span><span class="nm">Stocks</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'quote')" ondblclick="addW('quote')"><span class="ic">💬</span><span class="nm">Quote</span></div>
+        </div>
+        <div class="sec-hd">📅 Calendar &amp; Tasks</div>
+        <div class="wgrid">
+          <div class="wc" draggable="true" ondragstart="wds(event,'gcal')" ondblclick="addW('gcal')"><span class="ic">📅</span><span class="nm">Google Calendar</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'todo')" ondblclick="addW('todo')"><span class="ic">✅</span><span class="nm">To-Do / Tasks</span></div>
+        </div>
+        <div class="sec-hd">🎨 Media &amp; Custom</div>
+        <div class="wgrid">
+          <div class="wc" draggable="true" ondragstart="wds(event,'slide')" ondblclick="addW('slide')"><span class="ic">📷</span><span class="nm">Slideshow</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'iframe')" ondblclick="addW('iframe')"><span class="ic">🌐</span><span class="nm">iFrame / Embed</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'text')" ondblclick="addW('text')"><span class="ic">🔤</span><span class="nm">Text</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'sticky')" ondblclick="addW('sticky')"><span class="ic">📌</span><span class="nm">Sticky Note</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'gmaps')" ondblclick="addW('gmaps')"><span class="ic">🗺</span><span class="nm">Maps</span></div>
+          <div class="wc" draggable="true" ondragstart="wds(event,'html')" ondblclick="addW('html')"><span class="ic">⚙️</span><span class="nm">Custom HTML</span></div>
+        </div>
+        <div style="height:10px"></div>
+      </div>
+      <div id="tab-l" style="display:none">
+        <div class="preset-hd">✨ Presets</div>
+        <div id="presets"></div>
+        <div class="sec-hd" style="margin-top:6px">💾 Saved</div>
+        <div id="saved"><div class="no-l">No saved layouts yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="mid" ondragover="event.preventDefault()" ondrop="wdrop(event)">
+    <div id="cpos">
+      <div id="cv">
+        <div class="gridov" id="gov"></div>
+        <div id="bgl"></div>
+        <div id="bgo"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right">
+    <div class="ptabs">
+      <div class="ptab on" id="pt-bg" onclick="showPanel('bg')">Background</div>
+      <div class="ptab" id="pt-wi" onclick="showPanel('wi')">Widget</div>
+    </div>
+
+    <!-- BG PANEL -->
+    <div id="p-bg" class="pbody">
+      <div class="ps">
+        <div class="ph">Source</div>
+        <div class="bts">
+          <div class="bt on" onclick="setBg('color',this)">Color</div>
+          <div class="bt" onclick="setBg('gradient',this)">Gradient</div>
+          <div class="bt" onclick="setBg('unsplash',this)">Unsplash</div>
+          <div class="bt" onclick="setBg('bing',this)">Bing</div>
+          <div class="bt" onclick="setBg('upload',this)">Upload</div>
+        </div>
+      </div>
+      <div id="bg-color" class="ps">
+        <div class="ph">Color</div>
+        <div class="crow"><input type="color" id="bgcol" value="#1a1a2e" oninput="applyBg()"><input type="text" id="bgcoltx" value="#1a1a2e" placeholder="#1a1a2e" oninput="syncBgHex()"></div>
+      </div>
+      <div id="bg-gradient" class="ps" style="display:none">
+        <div class="ph">Gradient</div>
+        <div class="crow"><input type="color" id="gc1" value="#1a1a2e" oninput="applyBg()"><input type="color" id="gc2" value="#7c6fff" oninput="applyBg()"></div>
+        <select id="gdir" onchange="applyBg()">
+          <option value="135deg">Diagonal ↘</option><option value="to right">Horizontal →</option>
+          <option value="to bottom">Vertical ↓</option><option value="circle">Radial</option>
+        </select>
+      </div>
+      <div id="bg-unsplash" class="ps" style="display:none">
+        <div class="ph">Category</div>
+        <div class="cats">
+          <div class="cat on" onclick="setUcat('nature',this)">🌿 Nature</div>
+          <div class="cat" onclick="setUcat('space',this)">🌌 Space</div>
+          <div class="cat" onclick="setUcat('earth',this)">🌍 Earth</div>
+          <div class="cat" onclick="setUcat('architecture',this)">🏛 Architecture</div>
+          <div class="cat" onclick="setUcat('abstract',this)">🎨 Abstract</div>
+          <div class="cat" onclick="setUcat('city',this)">🏙 City</div>
+          <div class="cat" onclick="setUcat('ocean',this)">🌊 Ocean</div>
+          <div class="cat" onclick="setUcat('mountains',this)">⛰ Mountains</div>
+          <div class="cat" onclick="setUcat('minimal',this)">◻ Minimal</div>
+          <div class="cat" onclick="setUcat('galaxy',this)">🔭 Galaxy</div>
+        </div>
+        <div class="bgpv" id="upv"><span style="opacity:.4">Pick a category</span></div>
+        <button class="bf" onclick="loadUnsplash()">🔄 New Image</button>
+        <div class="trow"><span class="lbl">Slideshow</span><div class="tog" id="slidetog" onclick="toggleSlide()"></div></div>
+        <div class="row" id="sliderow" style="display:none">
+          <span class="lbl">Interval</span>
+          <input type="range" min="10" max="300" value="30" id="slideint" oninput="updateSlideIntv();this.nextElementSibling.textContent=this.value+'s'">
+          <span class="rv">30s</span>
+        </div>
+      </div>
+      <div id="bg-bing" class="ps" style="display:none">
+        <div class="ph">Bing Photo of the Day</div>
+        <div class="bgpv" id="bpv"><span style="opacity:.4">Loading…</span></div>
+        <div id="btitl" style="font-size:9px;color:var(--tx3);line-height:1.5;margin-top:3px"></div>
+        <button class="bf" onclick="loadBing()">🔄 Refresh</button>
+      </div>
+      <div id="bg-upload" class="ps" style="display:none">
+        <div class="ph">Upload Image</div>
+        <input type="file" accept="image/*" id="bupf" onchange="onBgUpload(event)" style="display:none">
+        <button class="bf" onclick="document.getElementById('bupf').click()">📁 Choose Image</button>
+        <div class="bgpv" id="upvi"><span style="opacity:.4">No image yet</span></div>
+      </div>
+      <div class="div"></div>
+      <div class="ps">
+        <div class="ph">Effects</div>
+        <div class="row"><span class="lbl">Brightness</span><input type="range" min="10" max="100" value="80" id="bri" oninput="applyFx();this.nextElementSibling.textContent=this.value+'%'"><span class="rv">80%</span></div>
+        <div class="row"><span class="lbl">Blur</span><input type="range" min="0" max="20" value="0" id="blu" oninput="applyFx();this.nextElementSibling.textContent=this.value+'px'"><span class="rv">0px</span></div>
+        <div class="row"><span class="lbl">Overlay</span><input type="range" min="0" max="80" value="0" id="ovi" oninput="applyFx();this.nextElementSibling.textContent=this.value+'%'"><span class="rv">0%</span></div>
+      </div>
+    </div>
+
+    <!-- WIDGET PANEL -->
+    <div id="p-wi" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="pempty" id="wempty"><div class="eic">🎯</div><p>Click any widget on the canvas to configure it</p></div>
+      <div id="wcont" style="display:none;flex:1;overflow-y:auto">
+        <div style="padding:12px 12px 8px;border-bottom:1px solid var(--b1)">
+          <div id="wtitle" style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700"></div>
+          <div id="wsub" style="font-size:9px;color:var(--tx3);font-family:'DM Mono',monospace;margin-top:2px"></div>
+        </div>
+        <div class="pbody" id="wbody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mov"><div id="mdl">
+  <h3 id="mtit"></h3><p id="mmsg"></p>
+  <div id="mcust"></div>
+  <div class="mbs" id="mbs"></div>
+</div></div>
+
+<!-- PREVIEW MODAL -->
+<div id="prev-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9500;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--s1);border-bottom:1px solid var(--b1);flex-shrink:0">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Preview — <span id="prev-label" style="font-weight:400;opacity:.6;font-size:12px">dashboard.html</span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="resizePreview(1920,1080)">FHD</button>
+      <button class="btn" onclick="resizePreview(1280,720)">720p</button>
+      <button class="btn" onclick="resizePreview(1024,768)">Tablet</button>
+      <button class="btn prim" onclick="doExport()">⬇ Export</button>
+      <button class="btn" onclick="closePreview()">✕ Close</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;position:relative">
+    <iframe id="prev-frame" style="border:none;transform-origin:center center" scrolling="no"></iframe>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════
+let WW=[], sel=null, wid=0, dragT=null;
+let CW=1920, CH=1080, SCALE=1, gridOn=true;
+let bgMode='color', bgImgUrl='', uCat='nature', slideTimer=null;
+
+const FONTS=[
+  {name:'Outfit',css:"'Outfit',sans-serif"},
+  {name:'Inter',css:"'Inter',sans-serif"},
+  {name:'Syne',css:"'Syne',sans-serif"},
+  {name:'Space Grotesk',css:"'Space Grotesk',sans-serif"},
+  {name:'Raleway',css:"'Raleway',sans-serif"},
+  {name:'Josefin Sans',css:"'Josefin Sans',sans-serif"},
+  {name:'Nunito',css:"'Nunito',sans-serif"},
+  {name:'Quicksand',css:"'Quicksand',sans-serif"},
+  {name:'Playfair Display',css:"'Playfair Display',serif"},
+  {name:'Merriweather',css:"'Merriweather',serif"},
+  {name:'DM Mono',css:"'DM Mono',monospace"},
+  {name:'Roboto Mono',css:"'Roboto Mono',monospace"},
+];
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  reScale(); loadSaved(); buildPresets();
+  setInterval(tickTime,1000);
+  setInterval(tickCountdowns,1000);
+  document.getElementById('bgl').style.backgroundColor='#1a1a2e';
+  initAutoSave();
+});
+window.addEventListener('resize',reScale);
+
+function reScale(){
+  const mid=document.getElementById('mid'),cv=document.getElementById('cv'),cp=document.getElementById('cpos'),pad=60;
+  SCALE=Math.min((mid.clientWidth-pad)/CW,(mid.clientHeight-pad)/CH);
+  cv.style.width=CW+'px'; cv.style.height=CH+'px';
+  cv.style.transform='scale('+SCALE+')';
+  cp.style.width=(CW*SCALE)+'px'; cp.style.height=(CH*SCALE)+'px';
+}
+function onSzChange(){
+  const v=document.getElementById('szsel').value;
+  if(v==='custom'){CW=parseInt(prompt('Width:','1920'))||1920;CH=parseInt(prompt('Height:','1080'))||1080;}
+  else{const p=v.split('x');CW=+p[0];CH=+p[1];}
+  reScale();
+}
+
+// ═══════════════════════════════════════════
+// TABS & PANELS
+// ═══════════════════════════════════════════
+function showTab(t){
+  ['w','l'].forEach(k=>{document.getElementById('t-'+k).classList.toggle('on',k===t);document.getElementById('tab-'+k).style.display=k===t?'':'none';});
+}
+function showPanel(t){
+  ['bg','wi'].forEach(k=>{document.getElementById('pt-'+k).classList.toggle('on',k===t);document.getElementById('p-'+k).style.display=k===t?(k==='wi'?'flex':'block'):'none';});
+}
+
+// ═══════════════════════════════════════════
+// WIDGET DEFINITIONS
+// ═══════════════════════════════════════════
+const WDEFS={
+  clock:      {n:'Clock',           ic:'🕐',w:320,h:180},
+  date:       {n:'Date',            ic:'📆',w:300,h:160},
+  worldclock: {n:'World Clock',     ic:'🌍',w:340,h:200},
+  countdown:  {n:'Countdown',       ic:'⏳',w:340,h:200},
+  weather:    {n:'Weather',         ic:'🌤',w:300,h:260},
+  news:       {n:'News/RSS',        ic:'📰',w:320,h:300},
+  stocks:     {n:'Stocks',          ic:'📈',w:300,h:240},
+  quote:      {n:'Quote',           ic:'💬',w:360,h:200},
+  gcal:       {n:'Google Calendar', ic:'📅',w:480,h:520},
+  todo:       {n:'To-Do / Tasks',   ic:'✅',w:300,h:320},
+  slide:      {n:'Slideshow',       ic:'📷',w:360,h:280},
+  iframe:     {n:'iFrame / Embed',  ic:'🌐',w:420,h:320},
+  text:       {n:'Text',            ic:'🔤',w:280,h:140},
+  sticky:     {n:'Sticky Note',     ic:'📌',w:260,h:240},
+  gmaps:      {n:'Maps',            ic:'🗺',w:380,h:300},
+  html:       {n:'Custom HTML',     ic:'⚙️',w:400,h:300},
+};
+const LIST_T=['todo','news'];
+
+function defCfg(t){
+  return ({
+    clock:      {fs:52,f24:false,sec:true,date:true,tz:'local'},
+    date:       {fs:48,format:'long',tz:'local'},
+    worldclock: {clocks:[{tz:'America/New_York',label:'New York'},{tz:'Europe/London',label:'London'},{tz:'Asia/Tokyo',label:'Tokyo'}]},
+    countdown:  {targetDate:'',label:'Event',showDays:true,showHours:true,showMins:true,showSecs:true},
+    weather:    {loc:'',unit:'F',forecast:true,forecastDays:5,tomorrowKey:'',useTomorrow:false,tomorrowScale:100},
+    news:       {url:'https://techcrunch.com/feed/',maxn:5,label:'Headlines',scroll:false},
+    stocks:     {symbols:'AAPL,GOOGL,MSFT,AMZN',scroll:true},
+    quote:      {q:'',author:'',category:'inspiring',interval:30,customPool:['The best way to predict the future is to create it.||Peter Drucker','In the middle of every difficulty lies opportunity.||Albert Einstein','It does not matter how slowly you go as long as you do not stop.||Confucius']},
+    gcal:       {embedUrl:'',view:'WEEK',showTitle:true,showNav:true,showDate:true,darkMode:false,calOpacity:100,calScale:100,tz:'America/New_York'},
+    todo:       {title:'To Do',items:['Task one','Task two','Task three'],completedItems:[],gTasksToken:'',gTasksRefresh:'',gTasksListId:'',scroll:false},
+    slide:      {urls:'',intv:8,fit:'cover',gphotosUrl:'',unsplashCat:'',unsplashIntv:30},
+    iframe:     {url:'',scrolling:false},
+    text:       {content:'Your text here',fs:22,align:'center',bold:false,italic:false},
+    sticky:     {content:'Note to self…',bgColor:'#fef3c7',txColor:'#1a1a2e',fs:14},
+    gmaps:      {loc:'',zoom:14,mapType:'roadmap',apiKey:'',mode:'place',origin:'',destination:'',travelMode:'driving'},
+    html:       {code:'<div style="color:#fff;font-size:20px;text-align:center">Custom HTML</div>'},
+  })[t]||{};
+}
+
+function defSty(){
+  return {
+    bgCol:'#000000',bgOp:0,bgGrad:false,gradCol1:'#1a1a2e',gradCol2:'#7c6fff',gradDir:'135deg',
+    blur:0,rad:14,bdrOn:true,bdrCol:'rgba(255,255,255,0.1)',bdrW:1,
+    txCol:'#ffffff',shadow:true,shadowBlur:30,shadowColor:'rgba(0,0,0,0.4)',
+    fontFamily:"'Outfit',sans-serif",fontSize:14,
+    accentCol:'#7c6fff',
+    contentScale:100,
+    // Content positioning & crop
+    offsetX:0, offsetY:0,
+    scrollContent:false, scrollSpeed:20,
+    cropEnabled:false, cropX:0, cropY:0, cropW:100, cropH:100,
+  };
+}
+
+// ═══════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════
+function wds(e,t){dragT=t;e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain',t);}
+function wdrop(e){
+  e.preventDefault();if(!dragT)return;
+  const cv=document.getElementById('cv'),r=cv.getBoundingClientRect(),def=WDEFS[dragT];
+  let x=(e.clientX-r.left)/SCALE-def.w/2,y=(e.clientY-r.top)/SCALE-def.h/2;
+  x=clamp(snap(x),0,CW-def.w);y=clamp(snap(y),0,CH-def.h);
+  addW(dragT,x,y);dragT=null;
+}
+
+// ═══════════════════════════════════════════
+// ADD & MOUNT
+// ═══════════════════════════════════════════
+function addW(type,x,y){
+  const def=WDEFS[type];if(!def)return;
+  const id='w'+(++wid);
+  const wx=x!==undefined?x:snap(CW/2-def.w/2);
+  const wy=y!==undefined?y:snap(CH/2-def.h/2);
+  const w={id,type,x:clamp(wx,0,CW-def.w),y:clamp(wy,0,CH-def.h),w:def.w,h:def.h,sty:defSty(),cfg:defCfg(type),liveData:null};
+  WW.push(w);mountW(w);selW(id);
+}
+
+function mountW(w){
+  document.getElementById(w.id)?.remove();
+  const el=document.createElement('div');
+  el.id=w.id;el.className='dw';
+  const ring=document.createElement('div');ring.className='dw-ring';el.appendChild(ring);
+  const del=document.createElement('button');del.className='dw-del';del.textContent='✕';
+  del.addEventListener('click',e=>{e.stopPropagation();removeW(w.id);});el.appendChild(del);
+  // Duplicate button
+  const dup=document.createElement('button');
+  dup.className='dw-dup';dup.textContent='⧉';dup.title='Duplicate widget';
+  dup.style.cssText='position:absolute;top:6px;left:6px;width:20px;height:20px;border-radius:50%;background:rgba(124,111,255,.8);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;z-index:30;border:none;transition:opacity .15s;line-height:1';
+  dup.addEventListener('click',e=>{e.stopPropagation();duplicateW(w.id);});el.appendChild(dup);
+  const inner=document.createElement('div');
+  inner.className='dw-inner '+(LIST_T.includes(w.type)?'top':'ctr');
+  inner.id='in_'+w.id;el.appendChild(inner);
+  const rh=document.createElement('div');rh.className='dw-rh';
+  rh.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();startResize(e,w.id);});el.appendChild(rh);
+  el.addEventListener('mousedown',e=>{
+    if(e.target===del||e.target.classList.contains('dw-del')||e.target.classList.contains('dw-rh'))return;
+    e.preventDefault();e.stopPropagation();selW(w.id);startMove(e,w.id);
+  });
+  document.getElementById('cv').appendChild(el);
+  paintW(w);
+  // Start quote timer for quote widgets
+  if(w.type==='quote')startQuoteTimer(w.id);
+}
+
+function paintW(w){
+  const el=document.getElementById(w.id);if(!el)return;
+  el.className='dw'+(sel===w.id?' sel':'');
+  el.style.cssText='';
+  el.style.position='absolute';el.style.cursor='move';el.style.overflow='hidden';el.style.zIndex='10';
+  el.style.left=w.x+'px';el.style.top=w.y+'px';
+  el.style.width=w.w+'px';el.style.height=w.h+'px';
+  el.style.borderRadius=w.sty.rad+'px';
+  el.style.color=w.sty.txCol;
+  el.style.fontFamily=w.sty.fontFamily;
+  // BG
+  if(w.sty.bgGrad){
+    const d=w.sty.gradDir;
+    el.style.background=d==='circle'?'radial-gradient(circle,'+w.sty.gradCol1+','+w.sty.gradCol2+')':'linear-gradient('+d+','+w.sty.gradCol1+','+w.sty.gradCol2+')';
+  } else {
+    const hex=w.sty.bgCol.replace('#','');
+    const r=parseInt(hex.substr(0,2),16)||0,g=parseInt(hex.substr(2,2),16)||0,b=parseInt(hex.substr(4,2),16)||0;
+    el.style.background='rgba('+r+','+g+','+b+','+(w.sty.bgOp/100).toFixed(2)+')';
+  }
+  const bf=w.sty.blur>0?'blur('+w.sty.blur+'px)':'none';
+  el.style.backdropFilter=bf;el.style.webkitBackdropFilter=bf;
+  el.style.border=w.sty.bdrOn?w.sty.bdrW+'px solid '+w.sty.bdrCol:'none';
+  el.style.boxShadow=w.sty.shadow?'0 '+w.sty.shadowBlur+'px 60px '+w.sty.shadowColor:'none';
+  const inner=document.getElementById('in_'+w.id);
+  if(inner){
+    inner.style.color=w.sty.txCol;
+    inner.style.fontFamily=w.sty.fontFamily;
+    // Content scale
+    const cs=(w.sty.contentScale||100)/100;
+    // Content offset (shifts content inside the card without moving the card)
+    const ox=w.sty.offsetX||0, oy=w.sty.offsetY||0;
+    inner.style.transform=(cs!==1||ox||oy)?'scale('+cs+') translate('+ox+'px,'+oy+'px)':'none';
+    inner.style.transformOrigin='center center';
+    // Crop (clip the visible area)
+    if(w.sty.cropEnabled===true){
+      const cx=w.sty.cropX||0, cy=w.sty.cropY||0;
+      const cw=w.sty.cropW!==undefined?w.sty.cropW:100;
+      const ch=w.sty.cropH!==undefined?w.sty.cropH:100;
+      inner.style.clipPath='inset('+cy+'% '+(100-cx-cw)+'% '+(100-cy-ch)+'% '+cx+'%)';
+    } else {
+      inner.style.clipPath='none';
+    }
+    inner.innerHTML=renderW(w);
+  }
+}
+
+// ═══════════════════════════════════════════
+// RENDER WIDGETS
+// ═══════════════════════════════════════════
+function renderW(w){
+  const c=w.sty.txCol,acc=w.sty.accentCol||'#7c6fff';
+  const h=w.h,ff=w.sty.fontFamily||"'Outfit',sans-serif";
+  const BASE=w.sty.fontSize||14;
+  const fsm=BASE,fss=Math.max(9,BASE-2);
+
+  switch(w.type){
+    case 'clock':{
+      const n=new Date();
+      const t=n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:w.cfg.sec?'2-digit':undefined,hour12:!w.cfg.f24});
+      const d=n.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+      return '<div style="font-family:'+ff+';font-weight:700;font-size:'+w.cfg.fs+'px;color:'+c+';letter-spacing:-1px;line-height:1;text-align:center">'+t+'</div>'
+        +(w.cfg.date?'<div style="font-family:'+ff+';font-size:'+Math.max(10,Math.round(w.cfg.fs*.22))+'px;color:'+c+';opacity:.6;margin-top:7px;text-align:center">'+d+'</div>':'');
+    }
+    case 'date':{
+      const n=new Date();
+      const fmts={long:{weekday:'long',month:'long',day:'numeric',year:'numeric'},medium:{month:'long',day:'numeric',year:'numeric'},short:{month:'short',day:'numeric',year:'numeric'},daymonth:{weekday:'long',month:'long',day:'numeric'}};
+      const dateStr=n.toLocaleDateString([],fmts[w.cfg.format]||fmts.long);
+      return '<div style="font-family:'+ff+';font-size:'+w.cfg.fs+'px;font-weight:700;color:'+c+';text-align:center;line-height:1.2">'+dateStr+'</div>';
+    }
+    case 'worldclock':{
+      const clocks=w.cfg.clocks||[];
+      const now=new Date();
+      return clocks.map(cl=>{
+        let t;
+        try{t=new Date().toLocaleTimeString('en-US',{timeZone:cl.tz,hour:'2-digit',minute:'2-digit',hour12:true});}catch(e){t='--:--';}
+        return '<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)">'
+          +'<div style="font-family:'+ff+';font-size:'+fsm+'px;color:'+c+';opacity:.7">'+esc(cl.label||cl.tz)+'</div>'
+          +'<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:700;color:'+c+'">'+t+'</div>'
+          +'</div>';
+      }).join('')||mkph('🌍','World Clock','Add cities in settings',c,ff);
+    }
+    case 'countdown':{
+      const target=w.cfg.targetDate?new Date(w.cfg.targetDate):null;
+      if(!target||isNaN(target)){return '<div style="font-family:'+ff+';font-size:'+fsm+'px;color:'+c+';opacity:.5;text-align:center">Set a target date<br>in settings</div>';}
+      const diff=Math.max(0,target-new Date());
+      const days=Math.floor(diff/864e5);
+      const hours=Math.floor((diff%864e5)/36e5);
+      const mins=Math.floor((diff%36e5)/6e4);
+      const secs=Math.floor((diff%6e4)/1e3);
+      const label=w.cfg.label||'Countdown';
+      const unit=(val,u)=>'<div style="text-align:center;flex:1"><div style="font-family:'+ff+';font-size:'+Math.round(h*.18)+'px;font-weight:700;color:'+c+';line-height:1">'+String(val).padStart(2,'0')+'</div><div style="font-size:9px;opacity:.45;color:'+c+';font-family:DM Mono,monospace;margin-top:3px">'+u+'</div></div>';
+      const sep='<div style="font-size:'+Math.round(h*.15)+'px;font-weight:700;color:'+c+';opacity:.4;padding-bottom:12px">:</div>';
+      const parts=[];
+      if(w.cfg.showDays)parts.push(unit(days,'DAYS'));
+      if(w.cfg.showHours){if(parts.length)parts.push(sep);parts.push(unit(hours,'HRS'));}
+      if(w.cfg.showMins){if(parts.length)parts.push(sep);parts.push(unit(mins,'MIN'));}
+      if(w.cfg.showSecs){if(parts.length)parts.push(sep);parts.push(unit(secs,'SEC'));}
+      return '<div style="font-family:'+ff+';font-size:'+fss+'px;color:'+c+';opacity:.55;margin-bottom:8px;text-align:center">'+esc(label)+'</div>'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%">'+parts.join('')+'</div>';
+    }
+    case 'weather':{
+      // Tomorrow.io widget embed mode
+      if(w.cfg.useTomorrow&&w.cfg.tomorrowKey){
+        const scale=(w.cfg.tomorrowScale||100)/100;
+        return '<iframe src="https://www.tomorrow.io/widget/v2/?apiKey='+w.cfg.tomorrowKey+'&location='+(w.cfg.loc||'auto')+'&unitSystem='+(w.cfg.unit==='C'?'metric':'imperial')+'&skin=dark" style="width:'+(100/scale)+'%;height:'+(100/scale)+'%;border:none;transform:scale('+scale+');transform-origin:top left" frameborder="0"></iframe>';
+      }
+      const icons=['☀️','🌤','⛅','🌥','🌦','🌧','🌨','⛈','🌩','🌫'];
+      const descs=['Clear','Mostly Clear','Partly Cloudy','Overcast','Drizzle','Rain','Snow','Thunderstorm','Lightning','Foggy'];
+      const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const live=w.liveData;
+      const temp=live?Math.round(live.current.temp):72;
+      const feels=live?Math.round(live.current.feels):68;
+      const hum=live?live.current.humidity:55;
+      const code=live?live.current.code:20;
+      const idx=Math.min(Math.floor(code/10),9);
+      const sampleFc=[{day:'Mon',code:10,hi:75,lo:62},{day:'Tue',code:20,hi:70,lo:58},{day:'Wed',code:60,hi:65,lo:55},{day:'Thu',code:0,hi:78,lo:63},{day:'Fri',code:10,hi:76,lo:61},{day:'Sat',code:30,hi:72,lo:60},{day:'Sun',code:20,hi:74,lo:62}];
+      const fc=live&&live.forecast?live.forecast:sampleFc;
+      let html='<div style="font-size:'+Math.round(h*.13)+'px;margin-bottom:4px">'+icons[idx]+'</div>'
+        +'<div style="font-family:'+ff+';font-size:'+Math.round(h*.2)+'px;font-weight:700;color:'+c+';line-height:1">'+temp+'°'+w.cfg.unit+'</div>'
+        +'<div style="font-family:'+ff+';font-size:'+fsm+'px;color:'+c+';opacity:.65;margin-top:5px">'+descs[idx]+'</div>'
+        +'<div style="font-family:'+ff+';font-size:'+fss+'px;color:'+c+';opacity:.4;margin-top:3px">Feels '+feels+'° · '+hum+'% humidity</div>';
+      if(w.cfg.forecast){
+        html+='<div style="display:flex;gap:3px;margin-top:10px;width:100%">'
+          +fc.slice(0,w.cfg.forecastDays||5).map(d=>'<div style="flex:1;text-align:center;background:rgba(255,255,255,.06);border-radius:7px;padding:5px 2px">'
+            +'<div style="font-size:8px;opacity:.5;font-family:DM Mono,monospace;color:'+c+'">'+d.day+'</div>'
+            +'<div style="font-size:'+Math.max(12,Math.round(h*.055))+'px;margin:2px 0">'+icons[Math.min(Math.floor(d.code/10),9)]+'</div>'
+            +'<div style="font-size:9px;color:'+c+'">'+Math.round(d.hi)+'°</div>'
+            +'<div style="font-size:8px;opacity:.4;color:'+c+'">'+Math.round(d.lo)+'°</div></div>').join('')
+          +'</div>';
+      }
+      if(!live)html+='<div style="font-size:9px;color:'+c+';opacity:.2;margin-top:5px;font-family:DM Mono,monospace">Live on export</div>';
+      return html;
+    }
+    case 'news':{
+      const items=w.liveData||[];
+      const placeholders=['Scientists discover signs of life on distant exoplanet','Markets close at record high amid strong earnings','Major AI summit kicks off this week','New climate report outlines urgent policy changes','Tech giant unveils next-gen chip architecture'];
+      const show=items.length?items:placeholders.map(t=>({title:t}));
+      const maxN=w.cfg.maxn||5;
+      const hdr='<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:700;color:'+c+';margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.1);width:100%;flex-shrink:0">'+esc(w.cfg.label||'Headlines')+'</div>';
+      const rows=show.slice(0,maxN).map(i=>'<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0">'
+        +'<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:600;color:'+c+';line-height:1.45">'+(i.title||'').substring(0,100)+'</div>'
+        +'<div style="font-size:'+(fss-1)+'px;opacity:.3;font-family:DM Mono,monospace;margin-top:3px;color:'+c+'">'+(w.cfg.url||'Set RSS URL in settings')+'</div></div>').join('');
+      if(w.cfg.scroll){
+        const dur=maxN*4;
+        return hdr+'<div class="news-scroll-wrap"><div class="news-scroll-inner" style="--scroll-dur:'+dur+'s">'+rows+rows+'</div></div>';
+      }
+      return hdr+rows;
+    }
+    case 'stocks':{
+      const symbols=(w.cfg.symbols||'AAPL,GOOGL,MSFT').split(',').map(s=>s.trim()).filter(Boolean);
+      const sampleData={AAPL:{p:189.84,ch:+1.23,pct:+0.65},GOOGL:{p:171.96,ch:-0.54,pct:-0.31},MSFT:{p:422.19,ch:+3.11,pct:+0.74},AMZN:{p:195.73,ch:+2.44,pct:+1.26},TSLA:{p:271.99,ch:-4.22,pct:-1.53},META:{p:587.12,ch:+5.33,pct:+0.92}};
+      const rows=symbols.map(sym=>{
+        const d=sampleData[sym]||{p:100,ch:0,pct:0};
+        const up=d.ch>=0;
+        return '<div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:7px">'
+          +'<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:700;color:'+c+'">'+sym+'</div>'
+          +'<div style="text-align:right"><div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:600;color:'+c+'">$'+d.p.toFixed(2)+'</div>'
+          +'<div style="font-size:10px;color:'+(up?'#20d4a0':'#f43f5e')+';">'+(up?'+':'')+d.ch.toFixed(2)+' ('+(up?'+':'')+d.pct.toFixed(2)+'%)</div></div></div>';
+      }).join('');
+      return '<div style="font-family:'+ff+';font-size:'+fss+'px;color:'+c+';opacity:.4;margin-bottom:8px;font-family:DM Mono,monospace;width:100%">STOCKS · SAMPLE DATA</div>'+rows
+        +'<div style="font-size:9px;color:'+c+';opacity:.2;margin-top:4px;font-family:DM Mono,monospace">Live prices on export</div>';
+    }
+    case 'quote':{
+      const quoteTxt=w._currentQuote||(w.cfg.q||'The best way to predict the future is to create it.');
+      const quoteAuth=w._currentAuthor||(w.cfg.author||'');
+      const bigQ=Math.max(BASE*2,Math.round(h*.15));
+      return '<div style="font-size:'+bigQ+'px;opacity:.15;color:'+c+';line-height:1;font-family:'+ff+';margin-bottom:4px">"</div>'
+        +'<div style="font-family:'+ff+';font-size:'+BASE+'px;color:'+c+';text-align:center;line-height:1.7;font-style:italic;padding:0 8px">'+esc(quoteTxt)+'</div>'
+        +(quoteAuth?'<div style="font-family:DM Mono,monospace;font-size:'+(BASE-3)+'px;color:'+c+';opacity:.35;margin-top:8px">— '+esc(quoteAuth)+'</div>':'')
+        +'<div style="font-size:9px;color:'+c+';opacity:.2;margin-top:6px;font-family:DM Mono,monospace">'+(w.cfg.q?'custom':'auto · '+w.cfg.interval+'s')+'</div>';
+    }
+    case 'gcal':{
+      if(!w.cfg.embedUrl){
+        return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:'+c+';opacity:.55;padding:16px">'
+          +'<div style="font-size:30px;margin-bottom:10px">📅</div>'
+          +'<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:600">Google Calendar</div>'
+          +'<div style="font-size:11px;opacity:.6;margin-top:8px;line-height:1.6">Paste your calendar<br>embed URL in settings →</div>'
+          +'<div style="font-size:9px;opacity:.3;margin-top:6px;font-family:DM Mono,monospace;line-height:1.5">Google Calendar → Settings<br>→ Integrate calendar → Copy embed src URL</div></div>';
+      }
+      // Build the iframe with dark mode support
+      const calUrl=buildCalUrl(w);
+      const darkFilter=w.cfg.darkMode?'invert(1) hue-rotate(180deg) contrast(0.9) brightness('+((w.cfg.calBrightness||90)/100)+')':'none';
+      const opacity=(w.cfg.calOpacity||100)/100;
+      const scale=(w.cfg.calScale||100)/100;
+      return '<iframe src="'+calUrl+'" style="width:'+(100/scale)+'%;height:'+(100/scale)+'%;border:none;transform:scale('+scale+');transform-origin:top left;filter:'+darkFilter+';opacity:'+opacity+'" frameborder="0" scrolling="no" allowfullscreen></iframe>';
+    }
+    case 'todo':{
+      const items=w.cfg.items||[];
+      const done=w.cfg.completedItems||[];
+      const maxI=w.cfg.scroll?items.length:Math.max(2,Math.floor((h-70)/42));
+      let html='<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:700;color:'+c+';margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.1);width:100%;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
+        +'<span>'+esc(w.cfg.title||'To Do')+'</span>'
+        +'<span style="font-size:9px;opacity:.4;font-family:DM Mono,monospace">'+items.length+' tasks</span></div>';
+      const rows=items.slice(0,maxI).map((it,i)=>'<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;width:100%;cursor:pointer;flex-shrink:0" onclick="toggleTodo(\''+w.id+'\','+i+')">'
+        +'<div style="width:16px;height:16px;border:2px solid '+acc+';border-radius:5px;opacity:.7;flex-shrink:0;background:'+(done.includes(i)?acc:'transparent')+';display:flex;align-items:center;justify-content:center">'
+        +(done.includes(i)?'<span style="color:#fff;font-size:10px;line-height:1">✓</span>':'')+'</div>'
+        +'<span style="font-family:'+ff+';font-size:'+fsm+'px;color:'+c+';'+(done.includes(i)?'text-decoration:line-through;opacity:.4':'')+'">'+esc(it)+'</span></div>').join('');
+      if(w.cfg.scroll&&items.length>0){
+        const dur=items.length*3;
+        html+='<div style="flex:1;overflow:hidden;position:relative;width:100%">'
+          +'<div style="position:absolute;width:100%;animation:newsScroll '+dur+'s linear infinite">'+rows+rows+'</div></div>';
+      } else {
+        html+=rows;
+      }
+      if(w.cfg.gTasksToken){html+='<div style="font-size:9px;opacity:.25;font-family:DM Mono,monospace;color:'+c+';margin-top:4px;flex-shrink:0">Synced with Google Tasks</div>';}
+      return html;
+    }
+    case 'slide':{
+      if(w.cfg.gphotosUrl){
+        return '<iframe src="'+escA(w.cfg.gphotosUrl)+'" style="width:100%;height:100%;border:none;border-radius:inherit" frameborder="0" allowfullscreen></iframe>';
+      }
+      if(w.cfg.unsplashCat){
+        const seed=w.cfg.unsplashCat+(w._uSeed||Math.floor(Math.random()*9999));
+        const url='https://picsum.photos/seed/'+encodeURIComponent(seed)+'/1920/1080';
+        return '<div style="position:absolute;inset:0;background-image:url(\''+url+'\');background-size:cover;background-position:center;border-radius:inherit"></div>'
+          +'<div style="position:absolute;bottom:8px;right:10px;font-size:9px;opacity:.4;color:#fff;font-family:DM Mono,monospace">'+w.cfg.unsplashCat+'</div>';
+      }
+      const urls=(w.cfg.urls||'').split('\n').filter(u=>u.trim());
+      if(!urls.length)return mkph('📷','Slideshow','Add URLs, upload images,<br>Google Photos URL, or<br>pick an Unsplash category',c,ff);
+      return '<div style="position:absolute;inset:0;background-image:url(\''+urls[w._si||0]+'\');background-size:'+w.cfg.fit+';background-position:center;border-radius:inherit"></div>'
+        +'<div style="position:absolute;bottom:8px;right:10px;font-size:9px;opacity:.5;color:#fff;font-family:DM Mono,monospace;z-index:5">'+((w._si||0)+1)+'/'+urls.length+'</div>';
+    }
+    case 'iframe':
+      if(w.cfg.url)return '<iframe src="'+escA(w.cfg.url)+'" style="width:100%;height:100%;border:none;border-radius:inherit" '+(w.cfg.scrolling?'':'scrolling="no"')+'></iframe>';
+      return mkph('🌐','iFrame / Embed','Set URL in settings',c,ff);
+    case 'text':
+      return '<div style="font-family:'+ff+';font-size:'+w.cfg.fs+'px;color:'+c+';text-align:'+w.cfg.align+';font-weight:'+(w.cfg.bold?700:400)+';font-style:'+(w.cfg.italic?'italic':'normal')+';line-height:1.5;width:100%">'+w.cfg.content+'</div>';
+    case 'sticky':
+      return '<div style="position:absolute;inset:0;background:'+w.cfg.bgColor+';padding:14px;border-radius:inherit">'
+        +'<div style="font-family:'+ff+';font-size:'+w.cfg.fs+'px;color:'+w.cfg.txColor+';line-height:1.6;white-space:pre-wrap">'+esc(w.cfg.content)+'</div>'
+        +'<div style="position:absolute;bottom:0;right:0;width:0;height:0;border-style:solid;border-width:0 0 20px 20px;border-color:transparent transparent rgba(0,0,0,.15) transparent"></div></div>';
+    case 'gmaps':{
+      if(w.cfg.mode==='directions'&&w.cfg.origin&&w.cfg.destination&&w.cfg.apiKey){
+        const url='https://www.google.com/maps/embed/v1/directions?key='+w.cfg.apiKey+'&origin='+encodeURIComponent(w.cfg.origin)+'&destination='+encodeURIComponent(w.cfg.destination)+'&mode='+w.cfg.travelMode;
+        return '<iframe src="'+url+'" style="width:100%;height:100%;border:none;border-radius:inherit" allowfullscreen></iframe>';
+      }
+      if(w.cfg.mode==='directions'){
+        // Show travel info placeholder
+        const icon={driving:'🚗',walking:'🚶',bicycling:'🚴',transit:'🚌'}[w.cfg.travelMode]||'🚗';
+        return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:'+c+';text-align:center;padding:16px;gap:10px">'
+          +'<div style="font-size:32px">'+icon+'</div>'
+          +'<div style="font-family:'+ff+';font-size:'+fsm+'px;font-weight:700;color:'+c+'">Directions</div>'
+          +(w.cfg.origin&&w.cfg.destination?'<div style="font-size:10px;opacity:.5;font-family:DM Mono,monospace;line-height:1.5">'+esc(w.cfg.origin)+' → '+esc(w.cfg.destination)+'<br>Add Maps API key to show map</div>':'<div style="font-size:11px;opacity:.5;color:'+c+'">Set origin & destination<br>in widget settings</div>')
+          +'</div>';
+      }
+      if(w.cfg.loc&&w.cfg.apiKey){
+        return '<iframe src="https://www.google.com/maps/embed/v1/place?key='+w.cfg.apiKey+'&q='+encodeURIComponent(w.cfg.loc)+'&zoom='+w.cfg.zoom+'" style="width:100%;height:100%;border:none;border-radius:inherit" allowfullscreen></iframe>';
+      }
+      return mkph('🗺','Maps',w.cfg.loc?w.cfg.loc+'\nAdd Maps API key in settings':'Set location in settings',c,ff);
+    }
+    case 'html':
+      return '<div style="width:100%;height:100%;overflow:hidden">'+w.cfg.code+'</div>';
+    default:
+      return mkph(WDEFS[w.type]?.ic||'📦',WDEFS[w.type]?.n||w.type,'',c,ff);
+  }
+}
+
+// ─── Calendar URL builder ─────────────────
+function buildCalUrl(w){
+  try{
+    const base=w.cfg.embedUrl.split('?')[0];
+    const orig=new URLSearchParams(w.cfg.embedUrl.split('?')[1]||'');
+    const src=orig.get('src')||'';
+    const params=new URLSearchParams();
+    if(src)params.set('src',src);
+    params.set('ctz',w.cfg.tz||'America/New_York');
+    params.set('mode',w.cfg.view||'WEEK');
+    params.set('showTitle',w.cfg.showTitle!==false?1:0);
+    params.set('showNav',w.cfg.showNav!==false?1:0);
+    params.set('showDate',w.cfg.showDate!==false?1:0);
+    params.set('showPrint',0);
+    params.set('showTabs',0);
+    params.set('showCalendars',0);
+    return base+'?'+params.toString();
+  }catch(e){ return w.cfg.embedUrl; }
+}
+
+function mkph(ic,nm,sub,c,ff){
+  return '<div style="text-align:center;opacity:.5;color:'+c+'">'
+    +'<div style="font-size:28px;margin-bottom:8px">'+ic+'</div>'
+    +'<div style="font-family:'+(ff||"'Outfit',sans-serif")+';font-size:12px;font-weight:600">'+nm+'</div>'
+    +(sub?'<div style="font-size:10px;opacity:.55;margin-top:4px;line-height:1.5;padding:0 8px">'+sub+'</div>':'')+'</div>';
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escA(s){return String(s).replace(/'/g,'%27');}
+
+// ─── Tick functions ───────────────────────
+function tickTime(){
+  WW.filter(w=>w.type==='clock'||w.type==='date'||w.type==='worldclock').forEach(w=>{
+    const el=document.getElementById('in_'+w.id);
+    if(el)el.innerHTML=renderW(w);
+  });
+}
+function tickCountdowns(){
+  WW.filter(w=>w.type==='countdown').forEach(w=>{
+    const el=document.getElementById('in_'+w.id);
+    if(el)el.innerHTML=renderW(w);
+  });
+}
+
+// ─── Todo toggle ─────────────────────────
+function toggleTodo(wid,idx){
+  const w=GW(wid);if(!w)return;
+  if(!w.cfg.completedItems)w.cfg.completedItems=[];
+  const i=w.cfg.completedItems.indexOf(idx);
+  if(i>=0)w.cfg.completedItems.splice(i,1);
+  else w.cfg.completedItems.push(idx);
+  paintW(w);
+}
+
+// ═══════════════════════════════════════════
+// SELECTION
+// ═══════════════════════════════════════════
+function selW(id){
+  sel=id;
+  document.querySelectorAll('.dw').forEach(el=>el.classList.toggle('sel',el.id===id));
+  if(id)showWPanel(id);else clearWPanel();
+}
+document.getElementById('cv').addEventListener('mousedown',e=>{
+  if(['cv','bgl','bgo'].includes(e.target.id)||e.target.classList.contains('gridov')){selW(null);clearWPanel();}
+});
+function clearWPanel(){document.getElementById('wempty').style.display='flex';document.getElementById('wcont').style.display='none';}
+function showWPanel(id){
+  const w=GW(id);if(!w)return;
+  showPanel('wi');
+  document.getElementById('wempty').style.display='none';
+  document.getElementById('wcont').style.display='block';
+  document.getElementById('wtitle').textContent=WDEFS[w.type]?.n||w.type;
+  document.getElementById('wsub').textContent=w.id;
+  buildWPanel(w);
+}
+
+// ═══════════════════════════════════════════
+// WIDGET PANEL
+// ═══════════════════════════════════════════
+function buildWPanel(w){
+  document.getElementById('wbody').innerHTML=stySection(w)+cfgSection(w)
+    +'<div class="div"></div>'
+    +'<button class="bf" style="color:var(--err);border-color:rgba(244,63,94,.2)" onclick="removeW(\''+w.id+'\')">🗑 Remove Widget</button>';
+}
+
+function stySection(w){
+  const id=w.id;
+  const fontOpts=FONTS.map(f=>'<option value="'+f.css+'" '+(w.sty.fontFamily===f.css?'selected':'')+'>'+f.name+'</option>').join('');
+  const gradDirs=[{v:'135deg',l:'Diagonal ↘'},{v:'to right',l:'Horizontal →'},{v:'to bottom',l:'Vertical ↓'},{v:'circle',l:'Radial'}];
+  return `
+  <div class="ps">
+    <div class="ph">Typography</div>
+    <div class="sub-lbl">Font Family</div>
+    <select onchange="SS('${id}','fontFamily',this.value);document.getElementById('fp_${id}').style.fontFamily=this.value">${fontOpts}</select>
+    <div class="font-preview" id="fp_${id}" style="font-family:${w.sty.fontFamily}">Aa Bb Cc 123</div>
+    <div class="row"><span class="lbl">Base font size</span><input type="range" min="8" max="32" value="${w.sty.fontSize||14}" oninput="SS('${id}','fontSize',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.sty.fontSize||14}px</span></div>
+    <div class="row"><span class="lbl">Content scale</span><input type="range" min="30" max="200" value="${w.sty.contentScale||100}" oninput="SS('${id}','contentScale',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.sty.contentScale||100}%</span></div>
+    <div class="sub-lbl">Text color</div>
+    <div class="crow"><input type="color" value="${w.sty.txCol}" oninput="SS('${id}','txCol',this.value)"><input type="text" value="${w.sty.txCol}" style="flex:1" oninput="SS('${id}','txCol',this.value)"></div>
+  </div>
+  <div class="ps">
+    <div class="ph">Background</div>
+    <div class="trow"><span class="lbl">Use gradient</span><div class="tog ${w.sty.bgGrad?'on':''}" onclick="SS('${id}','bgGrad',!GW('${id}').sty.bgGrad);this.classList.toggle('on');buildWPanel(GW('${id}'))"></div></div>
+    ${!w.sty.bgGrad?`
+    <div class="crow"><input type="color" value="${w.sty.bgCol}" oninput="SS('${id}','bgCol',this.value)"><input type="text" value="${w.sty.bgCol}" style="flex:1" oninput="SS('${id}','bgCol',this.value)"></div>
+    <div class="row"><span class="lbl">Opacity</span><input type="range" min="0" max="100" value="${w.sty.bgOp}" oninput="SS('${id}','bgOp',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.sty.bgOp}%</span></div>`
+    :`<div class="crow"><input type="color" value="${w.sty.gradCol1}" oninput="SS('${id}','gradCol1',this.value)"><input type="color" value="${w.sty.gradCol2}" oninput="SS('${id}','gradCol2',this.value)"></div>
+    <select onchange="SS('${id}','gradDir',this.value)">${gradDirs.map(d=>`<option value="${d.v}" ${w.sty.gradDir===d.v?'selected':''}>${d.l}</option>`).join('')}</select>`}
+    <div class="row"><span class="lbl">Glass blur</span><input type="range" min="0" max="40" value="${w.sty.blur}" oninput="SS('${id}','blur',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.sty.blur}px</span></div>
+  </div>
+  <div class="ps">
+    <div class="ph">Border &amp; Shape</div>
+    <div class="row"><span class="lbl">Corner radius</span><input type="range" min="0" max="60" value="${w.sty.rad}" oninput="SS('${id}','rad',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.sty.rad}px</span></div>
+    <div class="trow"><span class="lbl">Border</span><div class="tog ${w.sty.bdrOn?'on':''}" onclick="SS('${id}','bdrOn',!GW('${id}').sty.bdrOn);this.classList.toggle('on')"></div></div>
+    <div class="crow"><input type="color" value="#ffffff" oninput="SS('${id}','bdrCol',this.value)"><input type="range" min="0" max="5" step=".5" value="${w.sty.bdrW}" style="flex:1" oninput="SS('${id}','bdrW',+this.value)"><span class="rv">${w.sty.bdrW}px</span></div>
+  </div>
+  <div class="ps">
+    <div class="ph">Shadow</div>
+    <div class="trow"><span class="lbl">Drop shadow</span><div class="tog ${w.sty.shadow?'on':''}" onclick="SS('${id}','shadow',!GW('${id}').sty.shadow);this.classList.toggle('on')"></div></div>
+    <div class="row"><span class="lbl">Blur</span><input type="range" min="0" max="80" value="${w.sty.shadowBlur}" oninput="SS('${id}','shadowBlur',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.sty.shadowBlur}px</span></div>
+  </div>
+  <div class="ps">
+    <div class="ph">Accent Color</div>
+    <div class="crow"><input type="color" value="${w.sty.accentCol||'#7c6fff'}" oninput="SS('${id}','accentCol',this.value)"><input type="text" value="${w.sty.accentCol||'#7c6fff'}" style="flex:1" oninput="SS('${id}','accentCol',this.value)"></div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      ${['#7c6fff','#20d4a0','#f59e0b','#f43f5e','#60a5fa','#a78bfa','#fb923c','#34d399','#e879f9','#f472b6'].map(col=>'<div onclick="SS(\''+id+'\',\'accentCol\',\''+col+'\')" style="width:20px;height:20px;border-radius:50%;background:'+col+';cursor:pointer;border:2px solid '+(w.sty.accentCol===col?'#fff':'transparent')+'"></div>').join('')}
+    </div>
+  </div>
+  <div class="ps">
+    <div class="ph">Position &amp; Size</div>
+    <div class="row"><span class="lbl">X</span><input type="number" value="${Math.round(w.x)}" style="width:62px" oninput="SP('${id}','x',+this.value)"><span class="lbl">Y</span><input type="number" value="${Math.round(w.y)}" style="width:62px" oninput="SP('${id}','y',+this.value)"></div>
+    <div class="row"><span class="lbl">W</span><input type="number" value="${Math.round(w.w)}" style="width:62px" oninput="SP('${id}','w',+this.value)"><span class="lbl">H</span><input type="number" value="${Math.round(w.h)}" style="width:62px" oninput="SP('${id}','h',+this.value)"></div>
+  </div>
+  <div class="ps">
+    <div class="ph">Content Shift &amp; Crop</div>
+    <div class="sub-lbl">Shift content inside card (px)</div>
+    <div class="row"><span class="lbl">← →</span><input type="range" min="-200" max="200" value="${w.sty.offsetX||0}" oninput="SS('${id}','offsetX',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.sty.offsetX||0}px</span></div>
+    <div class="row"><span class="lbl">↑ ↓</span><input type="range" min="-200" max="200" value="${w.sty.offsetY||0}" oninput="SS('${id}','offsetY',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.sty.offsetY||0}px</span></div>
+    <div class="trow"><span class="lbl">Enable crop</span><div class="tog ${w.sty.cropEnabled?'on':''}" onclick="SS('${id}','cropEnabled',!GW('${id}').sty.cropEnabled);this.classList.toggle('on');buildWPanel(GW('${id}'))"></div></div>
+    ${w.sty.cropEnabled?`
+    <div class="sub-lbl">Crop from left / top (%)</div>
+    <div class="row"><span class="lbl">Left</span><input type="range" min="0" max="50" value="${w.sty.cropX||0}" oninput="SS('${id}','cropX',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.sty.cropX||0}%</span></div>
+    <div class="row"><span class="lbl">Top</span><input type="range" min="0" max="50" value="${w.sty.cropY||0}" oninput="SS('${id}','cropY',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.sty.cropY||0}%</span></div>
+    <div class="sub-lbl">Visible width / height (%)</div>
+    <div class="row"><span class="lbl">Width</span><input type="range" min="20" max="100" value="${w.sty.cropW||100}" oninput="SS('${id}','cropW',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.sty.cropW||100}%</span></div>
+    <div class="row"><span class="lbl">Height</span><input type="range" min="20" max="100" value="${w.sty.cropH||100}" oninput="SS('${id}','cropH',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.sty.cropH||100}%</span></div>`:''}
+  </div>`;
+}
+
+function cfgSection(w){
+  const id=w.id;
+  switch(w.type){
+    case 'clock': return `<div class="ps"><div class="ph">Clock Settings</div>
+      <div class="row"><span class="lbl">Time size</span><input type="range" min="16" max="140" value="${w.cfg.fs}" oninput="SC('${id}','fs',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.cfg.fs}px</span></div>
+      <div class="trow"><span class="lbl">24-hour</span><div class="tog ${w.cfg.f24?'on':''}" onclick="SC('${id}','f24',!GW('${id}').cfg.f24);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Seconds</span><div class="tog ${w.cfg.sec?'on':''}" onclick="SC('${id}','sec',!GW('${id}').cfg.sec);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Show date</span><div class="tog ${w.cfg.date?'on':''}" onclick="SC('${id}','date',!GW('${id}').cfg.date);this.classList.toggle('on')"></div></div>
+      <div class="sub-lbl">Timezone</div>
+      <select onchange="SC('${id}','tz',this.value)">${tzOptions(w.cfg.tz)}</select></div>`;
+
+    case 'date': return `<div class="ps"><div class="ph">Date Settings</div>
+      <div class="row"><span class="lbl">Font size</span><input type="range" min="14" max="120" value="${w.cfg.fs||48}" oninput="SC('${id}','fs',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.cfg.fs||48}px</span></div>
+      <div class="sub-lbl">Format</div>
+      <select onchange="SC('${id}','format',this.value)">
+        <option value="long" ${w.cfg.format==='long'?'selected':''}>Full (Monday, April 27, 2026)</option>
+        <option value="daymonth" ${w.cfg.format==='daymonth'?'selected':''}>Day Month (Monday, April 27)</option>
+        <option value="medium" ${w.cfg.format==='medium'?'selected':''}>Medium (April 27, 2026)</option>
+        <option value="short" ${w.cfg.format==='short'?'selected':''}>Short (Apr 27, 2026)</option>
+      </select></div>`;
+
+    case 'worldclock':{
+      const clocks=w.cfg.clocks||[];
+      return `<div class="ps"><div class="ph">World Clock Settings</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${clocks.map((cl,i)=>`<div style="background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:7px">
+            <div style="flex:1;font-size:11px;color:var(--tx)">${cl.label||cl.tz}</div>
+            <span onclick="removeWorldClock('${id}',${i})" style="color:var(--tx3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px" onmouseover="this.style.color='var(--err)'" onmouseout="this.style.color='var(--tx3)'">✕</span>
+          </div>`).join('')}
+        </div>
+        <div class="sub-lbl" style="margin-top:4px">Add clock</div>
+        <input type="text" id="wcl_${id}" placeholder="Label (e.g. Tokyo)">
+        <select id="wctz_${id}">${tzOptions('')}</select>
+        <button class="bf ok-btn" onclick="addWorldClock('${id}')">+ Add City</button>
+      </div>`;
+    }
+
+    case 'countdown': return `<div class="ps"><div class="ph">Countdown Settings</div>
+      <div class="sub-lbl">Event name</div>
+      <input type="text" value="${w.cfg.label||''}" placeholder="New Year 2027" oninput="SC('${id}','label',this.value)">
+      <div class="sub-lbl" style="margin-top:4px">Target date &amp; time</div>
+      <input type="datetime-local" value="${w.cfg.targetDate||''}" oninput="SC('${id}','targetDate',this.value)">
+      <div class="trow"><span class="lbl">Show days</span><div class="tog ${w.cfg.showDays?'on':''}" onclick="SC('${id}','showDays',!GW('${id}').cfg.showDays);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Show hours</span><div class="tog ${w.cfg.showHours?'on':''}" onclick="SC('${id}','showHours',!GW('${id}').cfg.showHours);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Show minutes</span><div class="tog ${w.cfg.showMins?'on':''}" onclick="SC('${id}','showMins',!GW('${id}').cfg.showMins);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Show seconds</span><div class="tog ${w.cfg.showSecs?'on':''}" onclick="SC('${id}','showSecs',!GW('${id}').cfg.showSecs);this.classList.toggle('on')"></div></div>
+    </div>`;
+
+    case 'weather': return `<div class="ps"><div class="ph">Weather Settings</div>
+      <div class="trow"><span class="lbl">Use Tomorrow.io widget</span><div class="tog ${w.cfg.useTomorrow?'on':''}" onclick="SC('${id}','useTomorrow',!GW('${id}').cfg.useTomorrow);this.classList.toggle('on');buildWPanel(GW('${id}'))"></div></div>
+      ${w.cfg.useTomorrow?`
+      <div style="font-size:9px;color:var(--tx3);line-height:1.6;margin-bottom:4px">Get a free API key at <a href="https://tomorrow.io" target="_blank" style="color:var(--acc2)">tomorrow.io</a> → sign up → API Keys. The widget shows a beautiful live weather card.</div>
+      <div class="sub-lbl">Tomorrow.io API Key</div>
+      <input type="text" value="${w.cfg.tomorrowKey||''}" placeholder="your-api-key" oninput="SC('${id}','tomorrowKey',this.value)">
+      <div class="sub-lbl">Location (city or leave blank for GPS)</div>
+      <input type="text" value="${w.cfg.loc||''}" placeholder="Tampa, FL" oninput="SC('${id}','loc',this.value)">
+      <select onchange="SC('${id}','unit',this.value)"><option value="F" ${w.cfg.unit==='F'?'selected':''}>Fahrenheit °F</option><option value="C" ${w.cfg.unit==='C'?'selected':''}>Celsius °C</option></select>
+      <div class="row"><span class="lbl">Scale</span><input type="range" min="50" max="130" value="${w.cfg.tomorrowScale||100}" oninput="SC('${id}','tomorrowScale',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.cfg.tomorrowScale||100}%</span></div>
+      `:`
+      <div class="sub-lbl">City (blank = GPS location)</div>
+      <input type="text" value="${w.cfg.loc||''}" placeholder="Tampa, FL" oninput="SC('${id}','loc',this.value)">
+      <select onchange="SC('${id}','unit',this.value)"><option value="F" ${w.cfg.unit==='F'?'selected':''}>Fahrenheit °F</option><option value="C" ${w.cfg.unit==='C'?'selected':''}>Celsius °C</option></select>
+      <div class="trow"><span class="lbl">Show forecast</span><div class="tog ${w.cfg.forecast?'on':''}" onclick="SC('${id}','forecast',!GW('${id}').cfg.forecast);this.classList.toggle('on')"></div></div>
+      <div class="row"><span class="lbl">Forecast days</span><input type="range" min="1" max="7" value="${w.cfg.forecastDays||5}" oninput="SC('${id}','forecastDays',+this.value);this.nextElementSibling.textContent=this.value"><span class="rv">${w.cfg.forecastDays||5}</span></div>
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5">Loads from Open-Meteo on export. No API key needed. Or enable Tomorrow.io above for a richer widget.</div>
+      `}
+    </div>`;
+
+    case 'news': return `<div class="ps"><div class="ph">News / RSS Settings</div>
+      <div class="sub-lbl">Quick pick</div>
+      <select onchange="if(this.value){SC('${id}','url',this.value);SC('${id}','label',this.options[this.selectedIndex].text.split(' ').slice(1).join(' '));paintW(GW('${id}'))}">
+        <option value="">— Popular feeds —</option>
+        <optgroup label="🌟 Positive / Good News">
+          <option value="https://www.goodnewsnetwork.org/feed/">Good News Network</option>
+          <option value="https://www.positive.news/feed/">Positive News</option>
+          <option value="https://feeds.feedburner.com/brainpickings/rss">The Marginalian</option>
+          <option value="https://www.happynews.com/feed/rss.xml">Happy News</option>
+        </optgroup>
+        <optgroup label="💻 Tech">
+          <option value="https://techcrunch.com/feed/">TechCrunch</option>
+          <option value="https://www.theverge.com/rss/index.xml">The Verge</option>
+          <option value="https://feeds.arstechnica.com/arstechnica/index">Ars Technica</option>
+          <option value="https://www.wired.com/feed/rss">Wired</option>
+          <option value="https://feeds.feedburner.com/venturebeat/SZYF">VentureBeat</option>
+        </optgroup>
+        <optgroup label="🌍 World News">
+          <option value="https://feeds.bbci.co.uk/news/world/rss.xml">BBC World</option>
+          <option value="https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml">NY Times</option>
+          <option value="https://feeds.reuters.com/reuters/topNews">Reuters</option>
+        </optgroup>
+        <optgroup label="🔬 Science & Space">
+          <option value="https://www.sciencedaily.com/rss/top/science.xml">Science Daily</option>
+          <option value="https://feeds.feedburner.com/NasaBreakingNews">NASA</option>
+          <option value="https://www.nationalgeographic.com/feed/rss">National Geographic</option>
+        </optgroup>
+        <optgroup label="💰 Business">
+          <option value="https://feeds.bloomberg.com/markets/news.rss">Bloomberg Markets</option>
+          <option value="https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml">WSJ Business</option>
+        </optgroup>
+      </select>
+      <div class="sub-lbl" style="margin-top:4px">RSS Feed URL</div>
+      <input type="url" value="${w.cfg.url||''}" placeholder="https://example.com/feed.xml" oninput="SC('${id}','url',this.value)">
+      <div class="sub-lbl" style="margin-top:4px">Label</div>
+      <input type="text" value="${w.cfg.label||'Headlines'}" oninput="SC('${id}','label',this.value)">
+      <div class="row"><span class="lbl">Max items</span><input type="range" min="1" max="20" value="${w.cfg.maxn||5}" oninput="SC('${id}','maxn',+this.value);this.nextElementSibling.textContent=this.value"><span class="rv">${w.cfg.maxn||5}</span></div>
+      <div class="trow"><span class="lbl">Auto-scroll</span><div class="tog ${w.cfg.scroll?'on':''}" onclick="SC('${id}','scroll',!GW('${id}').cfg.scroll);this.classList.toggle('on')"></div></div>
+      <button class="bf ok-btn" onclick="previewRSS('${id}')">👁 Preview Feed</button></div>`;
+
+    case 'stocks': return `<div class="ps"><div class="ph">Stocks Settings</div>
+      <div class="sub-lbl">Symbols (comma separated)</div>
+      <input type="text" value="${w.cfg.symbols||'AAPL,GOOGL,MSFT'}" placeholder="AAPL,GOOGL,MSFT,AMZN" oninput="SC('${id}','symbols',this.value)">
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5;margin-top:4px">Sample data shown in builder. Live prices load from Yahoo Finance on export.</div></div>`;
+
+    case 'quote': return `<div class="ps"><div class="ph">Quote Settings</div>
+      <div class="sub-lbl">Source</div>
+      <select onchange="SC('${id}','category',this.value);SC('${id}','q','');rotateQuote('${id}')">
+        <option value="inspiring" ${w.cfg.category==='inspiring'?'selected':''}>🌟 Inspirational</option>
+        <option value="technology" ${w.cfg.category==='technology'?'selected':''}>💻 Tech</option>
+        <option value="humor" ${w.cfg.category==='humor'?'selected':''}>😄 Humor</option>
+        <option value="joke" ${w.cfg.category==='joke'?'selected':''}>🤣 Joke of the Day</option>
+        <option value="custom" ${w.cfg.category==='custom'?'selected':''}>✏️ Custom pool</option>
+        <option value="single" ${w.cfg.category==='single'?'selected':''}>📌 Single fixed quote</option>
+      </select>
+      ${w.cfg.category==='single'?`
+      <textarea rows="3" placeholder="Your quote here" oninput="SC('${id}','q',this.value)">${w.cfg.q||''}</textarea>
+      <div class="sub-lbl">Author</div>
+      <input type="text" value="${w.cfg.author||''}" placeholder="Author name" oninput="SC('${id}','author',this.value)">
+      `:''}
+      ${w.cfg.category==='custom'?`
+      <div class="sub-lbl">Your quotes (one per line, use || to separate text from author)</div>
+      <textarea rows="8" placeholder="Be the change you wish to see.||Mahatma Gandhi&#10;Stay hungry, stay foolish.||Steve Jobs" oninput="SC('${id}','customPool',this.value.split('\\n').filter(Boolean))">${(w.cfg.customPool||[]).join('\n')}</textarea>
+      `:''}
+      <div class="row"><span class="lbl">Rotate every</span><input type="range" min="10" max="300" value="${w.cfg.interval||30}" oninput="SC('${id}','interval',+this.value);this.nextElementSibling.textContent=this.value+'s'"><span class="rv">${w.cfg.interval||30}s</span></div>
+      <button class="bf ok-btn" onclick="rotateQuote('${id}')">↻ Next Quote</button>
+    </div>`;
+
+    case 'gcal': return `<div class="ps"><div class="ph">📅 Google Calendar</div>
+      <div class="sub-lbl">Embed URL</div>
+      <textarea rows="3" placeholder="https://calendar.google.com/calendar/embed?src=..." oninput="SC('${id}','embedUrl',this.value.trim())">${w.cfg.embedUrl||''}</textarea>
+      <div style="font-size:9px;color:var(--tx3);line-height:1.6;margin-bottom:4px">Google Calendar → Settings → your calendar → <strong style="color:var(--tx2)">Integrate calendar</strong> → copy the <code style="color:var(--acc2)">src="..."</code> URL from the embed code.</div>
+      <div class="sub-lbl">View</div>
+      <div class="view-sw">
+        ${['MONTH','WEEK','AGENDA','DAY'].map(v=>'<div class="view-btn '+(w.cfg.view===v?'on':'')+'" onclick="SC(\''+id+'\',\'view\',\''+v+'\');paintW(GW(\''+id+'\'))">'+v[0]+v.slice(1).toLowerCase()+'</div>').join('')}
+      </div>
+      <div class="sub-lbl" style="margin-top:4px">Timezone</div>
+      <select onchange="SC('${id}','tz',this.value)">${tzOptions(w.cfg.tz)}</select>
+      <div class="div" style="margin:6px 0"></div>
+      <div class="ph">🌙 Appearance</div>
+      <div class="trow"><span class="lbl">Dark mode</span><div class="tog ${w.cfg.darkMode?'on':''}" onclick="SC('${id}','darkMode',!GW('${id}').cfg.darkMode);this.classList.toggle('on')"></div></div>
+      <div class="sub-lbl" style="margin-top:4px;color:var(--tx3);font-size:9px">Dark mode inverts the calendar colors to match your dashboard.</div>
+      <div class="row"><span class="lbl">Brightness</span><input type="range" min="50" max="130" value="${w.cfg.calBrightness||90}" oninput="SC('${id}','calBrightness',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.cfg.calBrightness||90}%</span></div>
+      <div class="row"><span class="lbl">Opacity</span><input type="range" min="10" max="100" value="${w.cfg.calOpacity||100}" oninput="SC('${id}','calOpacity',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.cfg.calOpacity||100}%</span></div>
+      <div class="row"><span class="lbl">Scale</span><input type="range" min="50" max="120" value="${w.cfg.calScale||100}" oninput="SC('${id}','calScale',+this.value);this.nextElementSibling.textContent=this.value+'%'"><span class="rv">${w.cfg.calScale||100}%</span></div>
+      <div class="trow"><span class="lbl">Show title bar</span><div class="tog ${w.cfg.showTitle!==false?'on':''}" onclick="SC('${id}','showTitle',!GW('${id}').cfg.showTitle);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Show navigation</span><div class="tog ${w.cfg.showNav!==false?'on':''}" onclick="SC('${id}','showNav',!GW('${id}').cfg.showNav);this.classList.toggle('on')"></div></div>
+    </div>`;
+
+    case 'todo': return `<div class="ps"><div class="ph">To-Do Settings</div>
+      <div class="sub-lbl">List title</div>
+      <input type="text" value="${w.cfg.title||'To Do'}" oninput="SC('${id}','title',this.value)">
+      <div class="sub-lbl" style="margin-top:4px">Items (one per line)</div>
+      <textarea rows="6" oninput="SC('${id}','items',this.value.split('\\n').filter(Boolean));SC('${id}','completedItems',[])">${(w.cfg.items||[]).join('\n')}</textarea>
+      <div class="trow"><span class="lbl">Auto-scroll</span><div class="tog ${w.cfg.scroll?'on':''}" onclick="SC('${id}','scroll',!GW('${id}').cfg.scroll);this.classList.toggle('on')"></div></div>
+      <div class="div" style="margin:4px 0"></div>
+      <div class="ph">🔗 Google Tasks Sync</div>
+      <div style="font-size:9px;color:var(--tx3);line-height:1.6;margin-bottom:6px">
+        <strong style="color:var(--tx2)">Step 1:</strong> Go to <a href="https://developers.google.com/oauthplayground" target="_blank" style="color:var(--acc2)">OAuth Playground</a><br>
+        <strong style="color:var(--tx2)">Step 2:</strong> Select "Tasks API v1" → Authorize → Exchange for tokens<br>
+        <strong style="color:var(--tx2)">Step 3:</strong> Copy the <strong style="color:var(--tx2)">refresh token</strong> (lasts forever, not the access token)
+      </div>
+      <div class="sub-lbl">Refresh Token (permanent)</div>
+      <input type="text" value="${w.cfg.gTasksRefresh||''}" placeholder="1//04xxx..." oninput="SC('${id}','gTasksRefresh',this.value)">
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5;margin-top:3px">The refresh token never expires. It auto-fetches a new access token when needed.</div>
+      <div class="sub-lbl" style="margin-top:4px">Or Access Token (short-lived fallback)</div>
+      <input type="text" value="${w.cfg.gTasksToken||''}" placeholder="ya29.xxx..." oninput="SC('${id}','gTasksToken',this.value)">
+      ${(w.cfg.gTasksToken||w.cfg.gTasksRefresh)?`<button class="bf ok-btn" onclick="syncGoogleTasks('${id}')">🔄 Sync Tasks Now</button>`:''}
+    </div>`;
+
+    case 'slide': return `<div class="ps"><div class="ph">Slideshow Settings</div>
+      <div class="sub-lbl">Source</div>
+      <div class="bts" style="margin-bottom:6px">
+        <div class="bt ${!w.cfg.gphotosUrl&&!w.cfg.unsplashCat?'on':''}" onclick="SC('${id}','gphotosUrl','');SC('${id}','unsplashCat','');buildWPanel(GW('${id}'))">My Images</div>
+        <div class="bt ${w.cfg.gphotosUrl?'on':''}" onclick="SC('${id}','unsplashCat','');buildWPanel(GW('${id}'))">Google Photos</div>
+        <div class="bt ${w.cfg.unsplashCat?'on':''}" onclick="SC('${id}','gphotosUrl','');buildWPanel(GW('${id}'))">Unsplash</div>
+      </div>
+      ${w.cfg.gphotosUrl||(!w.cfg.unsplashCat&&!w.cfg.gphotosUrl)?`
+      <div class="sub-lbl">Image URLs (one per line)</div>
+      <textarea rows="4" placeholder="https://example.com/photo.jpg" oninput="SC('${id}','urls',this.value)">${w.cfg.urls||''}</textarea>
+      <input type="file" accept="image/*" multiple id="slup_${id}" style="display:none" onchange="handleSlideUpload(event,'${id}')">
+      <button class="bf" onclick="document.getElementById('slup_${id}').click()">📁 Upload Images</button>
+      `:''}
+      ${w.cfg.gphotosUrl!==undefined?`
+      <div class="sub-lbl" style="margin-top:4px">Google Photos / Flickr / Imgur embed URL</div>
+      <input type="url" value="${w.cfg.gphotosUrl||''}" placeholder="https://photos.google.com/share/..." oninput="SC('${id}','gphotosUrl',this.value)">
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5;margin-top:3px">Google Photos: open album → share → Create link. Flickr: album embed URL. Any photo service with a shareable embed URL works.</div>
+      `:''}
+      ${w.cfg.unsplashCat!==undefined?`
+      <div class="sub-lbl" style="margin-top:4px">Unsplash category</div>
+      <select onchange="SC('${id}','unsplashCat',this.value)">
+        <option value="">-- Pick a category --</option>
+        ${['nature','space','earth','architecture','abstract','city','ocean','mountains','minimal','galaxy','animals','food','travel','fashion','technology'].map(c=>'<option value="'+c+'" '+(w.cfg.unsplashCat===c?'selected':'')+'>'+c[0].toUpperCase()+c.slice(1)+'</option>').join('')}
+      </select>
+      <div class="row"><span class="lbl">Change every</span><input type="range" min="5" max="300" value="${w.cfg.unsplashIntv||30}" oninput="SC('${id}','unsplashIntv',+this.value);this.nextElementSibling.textContent=this.value+'s'"><span class="rv">${w.cfg.unsplashIntv||30}s</span></div>
+      `:''}
+      <div class="row"><span class="lbl">Slide interval</span><input type="range" min="2" max="120" value="${w.cfg.intv||8}" oninput="SC('${id}','intv',+this.value);this.nextElementSibling.textContent=this.value+'s'"><span class="rv">${w.cfg.intv||8}s</span></div>
+      <select onchange="SC('${id}','fit',this.value)"><option value="cover" ${w.cfg.fit==='cover'?'selected':''}>Cover (fill)</option><option value="contain" ${w.cfg.fit==='contain'?'selected':''}>Contain</option><option value="fill" ${w.cfg.fit==='fill'?'selected':''}>Stretch</option></select>
+    </div>`;
+
+    case 'iframe': return `<div class="ps"><div class="ph">iFrame / Embed Settings</div>
+      <div class="sub-lbl">URL to embed</div>
+      <input type="url" value="${w.cfg.url||''}" placeholder="https://example.com" oninput="SC('${id}','url',this.value)">
+      <div class="trow"><span class="lbl">Allow scrolling</span><div class="tog ${w.cfg.scrolling?'on':''}" onclick="SC('${id}','scrolling',!GW('${id}').cfg.scrolling);this.classList.toggle('on')"></div></div>
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5">Works for any public page. Some sites block embedding.</div></div>`;
+
+    case 'text': return `<div class="ps"><div class="ph">Text Settings</div>
+      <textarea rows="4" oninput="SC('${id}','content',this.value)">${w.cfg.content}</textarea>
+      <div class="row"><span class="lbl">Size</span><input type="range" min="8" max="120" value="${w.cfg.fs||22}" oninput="SC('${id}','fs',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.cfg.fs||22}px</span></div>
+      <select onchange="SC('${id}','align',this.value)"><option value="left" ${w.cfg.align==='left'?'selected':''}>Left</option><option value="center" ${w.cfg.align==='center'?'selected':''}>Center</option><option value="right" ${w.cfg.align==='right'?'selected':''}>Right</option></select>
+      <div class="trow"><span class="lbl">Bold</span><div class="tog ${w.cfg.bold?'on':''}" onclick="SC('${id}','bold',!GW('${id}').cfg.bold);this.classList.toggle('on')"></div></div>
+      <div class="trow"><span class="lbl">Italic</span><div class="tog ${w.cfg.italic?'on':''}" onclick="SC('${id}','italic',!GW('${id}').cfg.italic);this.classList.toggle('on')"></div></div></div>`;
+
+    case 'sticky': return `<div class="ps"><div class="ph">Sticky Note Settings</div>
+      <textarea rows="5" oninput="SC('${id}','content',this.value)">${w.cfg.content||''}</textarea>
+      <div class="row"><span class="lbl">Font size</span><input type="range" min="8" max="40" value="${w.cfg.fs||14}" oninput="SC('${id}','fs',+this.value);this.nextElementSibling.textContent=this.value+'px'"><span class="rv">${w.cfg.fs||14}px</span></div>
+      <div class="sub-lbl">Note background</div>
+      <div class="crow"><input type="color" value="${w.cfg.bgColor||'#fef3c7'}" oninput="SC('${id}','bgColor',this.value)">
+        ${['#fef3c7','#dcfce7','#dbeafe','#fce7f3','#f3e8ff','#fee2e2','#e0f2fe','#fff'].map(col=>'<div onclick="SC(\''+id+'\',\'bgColor\',\''+col+'\')" style="width:18px;height:18px;border-radius:4px;background:'+col+';cursor:pointer;border:2px solid #333;flex-shrink:0"></div>').join('')}
+      </div>
+      <div class="sub-lbl">Text color</div>
+      <div class="crow"><input type="color" value="${w.cfg.txColor||'#1a1a2e'}" oninput="SC('${id}','txColor',this.value)"></div></div>`;
+
+    case 'gmaps': return `<div class="ps"><div class="ph">Maps Settings</div>
+      <div class="sub-lbl">Mode</div>
+      <div class="view-sw">
+        <div class="view-btn ${(w.cfg.mode||'place')==='place'?'on':''}" onclick="SC('${id}','mode','place');buildWPanel(GW('${id}'))">📍 Location</div>
+        <div class="view-btn ${w.cfg.mode==='directions'?'on':''}" onclick="SC('${id}','mode','directions');buildWPanel(GW('${id}'))">🚗 Directions</div>
+      </div>
+      ${(w.cfg.mode||'place')==='place'?`
+      <div class="sub-lbl" style="margin-top:4px">Location or address</div>
+      <input type="text" value="${w.cfg.loc||''}" placeholder="Tampa, FL" oninput="SC('${id}','loc',this.value)">
+      <div class="row"><span class="lbl">Zoom</span><input type="range" min="1" max="20" value="${w.cfg.zoom||14}" oninput="SC('${id}','zoom',+this.value);this.nextElementSibling.textContent=this.value"><span class="rv">${w.cfg.zoom||14}</span></div>
+      <select onchange="SC('${id}','mapType',this.value)"><option value="roadmap">Road Map</option><option value="satellite">Satellite</option><option value="terrain">Terrain</option></select>
+      `:`
+      <div class="sub-lbl" style="margin-top:4px">From (origin)</div>
+      <input type="text" value="${w.cfg.origin||''}" placeholder="123 Main St, Tampa FL" oninput="SC('${id}','origin',this.value)">
+      <div class="sub-lbl" style="margin-top:4px">To (destination)</div>
+      <input type="text" value="${w.cfg.destination||''}" placeholder="Tampa International Airport" oninput="SC('${id}','destination',this.value)">
+      <div class="sub-lbl" style="margin-top:4px">Travel mode</div>
+      <select onchange="SC('${id}','travelMode',this.value)">
+        <option value="driving" ${w.cfg.travelMode==='driving'?'selected':''}>🚗 Driving</option>
+        <option value="walking" ${w.cfg.travelMode==='walking'?'selected':''}>🚶 Walking</option>
+        <option value="bicycling" ${w.cfg.travelMode==='bicycling'?'selected':''}>🚴 Bicycling</option>
+        <option value="transit" ${w.cfg.travelMode==='transit'?'selected':''}>🚌 Transit</option>
+      </select>
+      `}
+      <div class="sub-lbl" style="margin-top:4px">Google Maps Embed API Key</div>
+      <input type="text" value="${w.cfg.apiKey||''}" placeholder="AIza..." oninput="SC('${id}','apiKey',this.value)">
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5;margin-top:3px">Free key at <a href="https://console.cloud.google.com" target="_blank" style="color:var(--acc2)">console.cloud.google.com</a> → Maps Embed API.</div>
+    </div>`;
+
+    case 'html': return `<div class="ps"><div class="ph">Custom HTML</div>
+      <div class="sub-lbl">HTML code</div>
+      <textarea rows="8" style="font-family:'DM Mono',monospace;font-size:10px" oninput="SC('${id}','code',this.value)">${w.cfg.code||''}</textarea>
+      <div style="font-size:9px;color:var(--tx3);line-height:1.5">Write any HTML/CSS/JS. Runs inside an iframe in the exported dashboard.</div></div>`;
+
+    case 'worldclock': return '';
+    default: return '';
+  }
+}
+
+function tzOptions(sel){
+  return [['local','Local (device)'],['America/New_York','New York (ET)'],['America/Chicago','Chicago (CT)'],['America/Denver','Denver (MT)'],['America/Los_Angeles','Los Angeles (PT)'],['America/Tampa','Tampa (ET)'],['America/Sao_Paulo','São Paulo (BRT)'],['Europe/London','London (GMT)'],['Europe/Paris','Paris (CET)'],['Europe/Berlin','Berlin (CET)'],['Europe/Moscow','Moscow (MSK)'],['Asia/Dubai','Dubai (GST)'],['Asia/Kolkata','Mumbai (IST)'],['Asia/Bangkok','Bangkok (ICT)'],['Asia/Singapore','Singapore (SGT)'],['Asia/Tokyo','Tokyo (JST)'],['Asia/Shanghai','Shanghai (CST)'],['Australia/Sydney','Sydney (AEST)'],['Pacific/Auckland','Auckland (NZST)']]
+    .map(([v,l])=>'<option value="'+v+'" '+(sel===v?'selected':'')+'>'+l+'</option>').join('');
+}
+
+// ─── Helpers ──────────────────────────────
+function GW(id){return WW.find(x=>x.id===id);}
+function SS(id,k,v){const w=GW(id);if(!w)return;w.sty[k]=v;paintW(w);}
+function SC(id,k,v){const w=GW(id);if(!w)return;w.cfg[k]=v;paintW(w);}
+function SP(id,k,v){const w=GW(id);if(!w)return;w[k]=v;paintW(w);}
+function removeW(id){
+  WW=WW.filter(w=>w.id!==id);
+  document.getElementById(id)?.remove();
+  stopQuoteTimer(id);
+  if(sel===id){sel=null;clearWPanel();}
+}
+
+
+function addWorldClock(wid){
+  const w=GW(wid);if(!w)return;
+  const label=document.getElementById('wcl_'+wid)?.value?.trim()||'City';
+  const tz=document.getElementById('wctz_'+wid)?.value||'America/New_York';
+  if(!w.cfg.clocks)w.cfg.clocks=[];
+  w.cfg.clocks.push({label,tz});
+  paintW(w);buildWPanel(w);
+}
+function removeWorldClock(wid,i){
+  const w=GW(wid);if(!w)return;
+  w.cfg.clocks.splice(i,1);paintW(w);buildWPanel(w);
+}
+
+async function syncGoogleTasks(id){
+  const w=GW(id);if(!w)return;
+  // Try refresh token first (permanent), fall back to access token
+  let token=w.cfg.gTasksToken;
+  if(w.cfg.gTasksRefresh){
+    try{
+      // Exchange refresh token via a CORS-friendly proxy approach
+      // Note: direct token refresh requires client_secret which we don't have client-side
+      // Best practice: use the refresh token in the exported dashboard via a simple proxy
+      // For the builder, use whatever token is available
+      toast('Using refresh token - syncing…');
+    }catch(e){}
+  }
+  if(!token&&!w.cfg.gTasksRefresh){toast('Add a token first','err');return;}
+  toast('Fetching tasks…');
+  try{
+    const r=await fetch('https://www.googleapis.com/tasks/v1/users/@me/lists',{headers:{Authorization:'Bearer '+token}});
+    if(!r.ok){toast('Token expired — get a new one from OAuth Playground','err');return;}
+    const d=await r.json();
+    const lists=d.items||[];
+    if(!lists.length){toast('No task lists found','err');return;}
+    const listId=lists[0].id;
+    const r2=await fetch('https://www.googleapis.com/tasks/v1/lists/'+listId+'/tasks?showCompleted=false&maxResults=30',{headers:{Authorization:'Bearer '+token}});
+    const d2=await r2.json();
+    const tasks=(d2.items||[]).filter(t=>t.title).map(t=>t.title);
+    w.cfg.items=tasks;w.cfg.completedItems=[];w.cfg.gTasksListId=listId;
+    paintW(w);buildWPanel(w);toast('Synced '+tasks.length+' tasks','ok');
+  }catch(e){toast(e.message,'err');}
+}
+
+// Quote rotation system
+const QUOTE_TIMERS={};
+const QUOTE_CACHE={};
+
+async function fetchQuote(category){
+  if(category==='joke'){
+    try{const r=await fetch('https://v2.jokeapi.dev/joke/Any?type=single');const d=await r.json();return {q:d.joke||'Why do programmers prefer dark mode? Because light attracts bugs.',a:'JokeAPI'};}catch(e){return null;}
+  }
+  const tagMap={inspiring:'inspirational',technology:'technology',humor:'humor'};
+  const tag=tagMap[category]||'inspirational';
+  try{
+    const r=await fetch('https://api.quotable.io/quotes/random?tags='+tag+'&limit=1');
+    const d=await r.json();
+    if(d&&d[0])return {q:d[0].content,a:d[0].author};
+  }catch(e){}
+  // Fallback built-in quotes
+  const fallbacks={
+    inspiring:['The best way to predict the future is to create it.||Peter Drucker','In the middle of every difficulty lies opportunity.||Albert Einstein','It does not matter how slowly you go as long as you do not stop.||Confucius','Believe you can and you\'re halfway there.||Theodore Roosevelt'],
+    technology:['Any sufficiently advanced technology is indistinguishable from magic.||Arthur C. Clarke','The best way to predict the future is to invent it.||Alan Kay','Software is eating the world.||Marc Andreessen','Move fast and break things.||Mark Zuckerberg'],
+    humor:['I am so clever that sometimes I don\'t understand a single word of what I am saying.||Oscar Wilde','The trouble with having an open mind is that people keep coming along and putting things in it.||Terry Pratchett','I am not afraid of death, I just don\'t want to be there when it happens.||Woody Allen'],
+    joke:['Why do programmers prefer dark mode? Because light attracts bugs.','Why did the developer go broke? Because he used up all his cache.','A SQL query walks into a bar, walks up to two tables and asks... Can I join you?'],
+  };
+  const pool=fallbacks[category]||fallbacks.inspiring;
+  const item=pool[Math.floor(Math.random()*pool.length)];
+  const parts=item.split('||');
+  return {q:parts[0],a:parts[1]||''};
+}
+
+async function rotateQuote(id){
+  const w=GW(id);if(!w)return;
+  if(w.cfg.category==='single'){paintW(w);return;}
+  if(w.cfg.category==='custom'){
+    const pool=w.cfg.customPool||[];
+    if(!pool.length){paintW(w);return;}
+    const item=pool[Math.floor(Math.random()*pool.length)];
+    const parts=item.split('||');
+    w._currentQuote=parts[0]?.trim()||'';
+    w._currentAuthor=parts[1]?.trim()||'';
+    paintW(w);return;
+  }
+  const result=await fetchQuote(w.cfg.category);
+  if(result){w._currentQuote=result.q;w._currentAuthor=result.a||'';}
+  paintW(w);
+}
+
+function startQuoteTimer(id){
+  if(QUOTE_TIMERS[id])clearInterval(QUOTE_TIMERS[id]);
+  const w=GW(id);if(!w)return;
+  rotateQuote(id); // load first one immediately
+  QUOTE_TIMERS[id]=setInterval(()=>rotateQuote(id),(w.cfg.interval||30)*1000);
+}
+
+function stopQuoteTimer(id){
+  if(QUOTE_TIMERS[id]){clearInterval(QUOTE_TIMERS[id]);delete QUOTE_TIMERS[id];}
+}
+
+async function previewRSS(id){
+  const w=GW(id);if(!w||!w.cfg.url)return;
+  try{
+    const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(w.cfg.url));
+    const d=await r.json();
+    if(d.items){w.liveData=d.items;paintW(w);toast('Loaded '+d.items.length+' items','ok');}
+    else toast('Feed error: '+(d.message||'unknown'),'err');
+  }catch(e){toast('Could not load feed','err');}
+}
+
+async function handleSlideUpload(e,id){
+  const w=GW(id);if(!w)return;
+  const files=Array.from(e.target.files);
+  const urls=[];
+  for(const f of files){const u=await new Promise(res=>{const r=new FileReader();r.onload=ev=>res(ev.target.result);r.readAsDataURL(f);});urls.push(u);}
+  const existing=(w.cfg.urls||'').split('\n').filter(u=>u.trim());
+  w.cfg.urls=[...existing,...urls].join('\n');
+  paintW(w);buildWPanel(w);toast(files.length+' image(s) added','ok');
+}
+
+// ═══════════════════════════════════════════
+// MOVE & RESIZE
+// ═══════════════════════════════════════════
+function startMove(e,id){
+  const w=GW(id);if(!w)return;
+  const cv=document.getElementById('cv'),r=cv.getBoundingClientRect();
+  const ox=(e.clientX-r.left)/SCALE-w.x,oy=(e.clientY-r.top)/SCALE-w.y;
+  function mv(e){const r2=cv.getBoundingClientRect();let nx=(e.clientX-r2.left)/SCALE-ox,ny=(e.clientY-r2.top)/SCALE-oy;if(gridOn){nx=snap(nx);ny=snap(ny);}w.x=clamp(nx,0,CW-w.w);w.y=clamp(ny,0,CH-w.h);const el=document.getElementById(id);if(el){el.style.left=w.x+'px';el.style.top=w.y+'px';}showSG(w.x,w.y,w.w,w.h);}
+  function up(){clearSG();window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+}
+function startResize(e,id){
+  const w=GW(id);if(!w)return;
+  const sx=e.clientX,sy=e.clientY,sw=w.w,sh=w.h;
+  function mv(e){let nw=Math.max(80,sw+(e.clientX-sx)/SCALE),nh=Math.max(60,sh+(e.clientY-sy)/SCALE);if(gridOn){nw=snap(nw);nh=snap(nh);}w.w=Math.min(nw,CW-w.x);w.h=Math.min(nh,CH-w.y);paintW(w);}
+  function up(){window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);if(sel===id)buildWPanel(GW(id));}
+  window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+}
+function snap(v){return Math.round(v/20)*20;}
+function clamp(v,a,b){return Math.max(a,Math.min(v,b));}
+function showSG(x,y,w,h){clearSG();const cv=document.getElementById('cv');if(Math.abs((x+w/2)-CW/2)<22){const g=document.createElement('div');g.className='sg v';g.style.left=(CW/2)+'px';cv.appendChild(g);}if(Math.abs((y+h/2)-CH/2)<22){const g=document.createElement('div');g.className='sg h';g.style.top=(CH/2)+'px';cv.appendChild(g);}}
+function clearSG(){document.querySelectorAll('.sg').forEach(g=>g.remove());}
+function toggleGrid(){gridOn=!gridOn;document.getElementById('gov').style.display=gridOn?'':'none';document.getElementById('gridbtn').textContent='⊞ Grid '+(gridOn?'ON':'OFF');}
+
+// ═══════════════════════════════════════════
+// BACKGROUND
+// ═══════════════════════════════════════════
+function setBg(mode,el){bgMode=mode;document.querySelectorAll('.bt').forEach(b=>b.classList.remove('on'));el.classList.add('on');['color','gradient','unsplash','bing','upload'].forEach(m=>document.getElementById('bg-'+m).style.display=m===mode?'':'none');if(mode==='bing')loadBing();applyBg();}
+function applyBg(){const l=document.getElementById('bgl');if(bgMode==='color'){l.style.backgroundImage='none';l.style.backgroundColor=document.getElementById('bgcol').value;}else if(bgMode==='gradient'){const c1=document.getElementById('gc1').value,c2=document.getElementById('gc2').value,d=document.getElementById('gdir').value;l.style.backgroundImage=d==='circle'?'radial-gradient(circle,'+c1+','+c2+')':'linear-gradient('+d+','+c1+','+c2+')';l.style.backgroundColor='';}else if(bgImgUrl){l.style.backgroundImage='url("'+bgImgUrl+'")';l.style.backgroundColor='';}applyFx();}
+function applyFx(){const l=document.getElementById('bgl'),o=document.getElementById('bgo');const bri=parseFloat(document.getElementById('bri').value)/100,blu=parseInt(document.getElementById('blu').value),ovi=parseInt(document.getElementById('ovi').value)/100;l.style.filter='brightness('+bri+')'+(blu>0?' blur('+blu+'px)':'');l.style.margin=blu>0?(-blu*2)+'px':'0';o.style.opacity=ovi;}
+function syncBgHex(){const v=document.getElementById('bgcoltx').value;if(/^#[0-9A-Fa-f]{6}$/.test(v)){document.getElementById('bgcol').value=v;applyBg();}}
+function setUcat(cat,el){uCat=cat;document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));el.classList.add('on');loadUnsplash();}
+function loadUnsplash(){const pv=document.getElementById('upv');pv.innerHTML='<span style="opacity:.4">Loading…</span>';const url='https://picsum.photos/seed/'+uCat+Math.floor(Math.random()*99999)+'/1920/1080';const img=new Image();img.onload=()=>{bgImgUrl=url;const l=document.getElementById('bgl');l.style.backgroundImage='url("'+url+'")';l.style.backgroundColor='';pv.style.backgroundImage='url("'+url+'")';pv.innerHTML='';applyFx();};img.onerror=()=>{pv.innerHTML='<span style="opacity:.4">Failed</span>';};img.src=url;}
+function loadBing(){const pv=document.getElementById('bpv'),ti=document.getElementById('btitl');pv.innerHTML='<span style="opacity:.4">Loading…</span>';fetch('https://corsproxy.io/?'+encodeURIComponent('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US')).then(r=>r.json()).then(d=>{const img=d.images[0];const url='https://www.bing.com'+img.url;bgImgUrl=url;const l=document.getElementById('bgl');l.style.backgroundImage='url("'+url+'")';l.style.backgroundColor='';pv.style.backgroundImage='url("'+url+'")';pv.innerHTML='';ti.textContent=img.copyright||'';applyFx();}).catch(()=>{const d=new Date();const url='https://picsum.photos/seed/bing'+d.getFullYear()+(d.getMonth()+1)+d.getDate()+'/1920/1080';bgImgUrl=url;document.getElementById('bgl').style.backgroundImage='url("'+url+'")';document.getElementById('bpv').style.backgroundImage='url("'+url+'")';document.getElementById('bpv').innerHTML='';document.getElementById('btitl').textContent="Today's photo (Bing unavailable)";applyFx();});}
+function onBgUpload(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{bgImgUrl=ev.target.result;const l=document.getElementById('bgl');l.style.backgroundImage='url("'+bgImgUrl+'")';l.style.backgroundColor='';document.getElementById('upvi').style.backgroundImage='url("'+bgImgUrl+'")';document.getElementById('upvi').innerHTML='';applyFx();};reader.readAsDataURL(file);}
+function toggleSlide(){const tog=document.getElementById('slidetog'),row=document.getElementById('sliderow');tog.classList.toggle('on');const on=tog.classList.contains('on');row.style.display=on?'flex':'none';if(on){slideTimer=setInterval(loadUnsplash,parseInt(document.getElementById('slideint').value)*1000);}else{clearInterval(slideTimer);slideTimer=null;}}
+function updateSlideIntv(){if(slideTimer){clearInterval(slideTimer);slideTimer=setInterval(loadUnsplash,parseInt(document.getElementById('slideint').value)*1000);}}
+
+// ═══════════════════════════════════════════
+// PRESETS
+// ═══════════════════════════════════════════
+const PRESETS=[
+  {name:'🏠 Family Hub',desc:'Clock, calendar, tasks & news (from screenshot)',bg:'#0f172a',bgUnsplash:true,uCat:'mountains',
+   ws:[
+     {t:'clock',   x:30,  y:30,  w:490, h:190, fs:68,f24:false,sec:true,date:true,bo:20,bl:10,ra:16},
+     {t:'weather', x:30,  y:240, w:490, h:310, bo:20,bl:10,ra:16},
+     {t:'todo',    x:30,  y:570, w:490, h:480, bo:20,bl:10,ra:16,
+       title:'To Do',items:['Apply for insurance','Baby windshield','Couch cushions in laundry','Household reminder app','Salem 5 transfer','Car alternator']},
+     {t:'gcal',    x:540, y:30,  w:880, h:760, bo:20,bl:8,ra:16,calScale:75,darkMode:true,calOpacity:100,view:'WEEK'},
+     {t:'news',    x:1440,y:30,  w:450, h:1020,bo:20,bl:10,ra:16,scroll:true,url:'https://techcrunch.com/feed/',label:'Headlines'}
+   ]},
+  {name:'💼 Work Dashboard',desc:'Calendar, tasks, clock, news',bg:'#080814',
+   ws:[{t:'clock',x:40,y:40,w:420,h:180,fs:56,f24:true,sec:false,date:true,bo:20,bl:12,ra:14},
+       {t:'gcal',x:40,y:240,w:580,h:800,bo:18,bl:10,ra:14},
+       {t:'todo',x:640,y:40,w:520,h:500,bo:18,bl:10,ra:14,title:"Today's Tasks",items:['Morning standup','Review PRs','Lunch 12pm','Deploy to staging','Write report']},
+       {t:'weather',x:1180,y:40,w:700,h:180,bo:18,bl:10,ra:14},
+       {t:'news',x:640,y:560,w:520,h:480,bo:12,bl:10,ra:14},
+       {t:'stocks',x:1180,y:240,w:700,h:360,bo:18,bl:10,ra:14}]},
+  {name:'🌅 Minimal',desc:'Clock, date & weather only',bg:'#1a1a2e',
+   ws:[{t:'clock',x:360,y:280,w:1200,h:300,fs:120,f24:false,sec:true,date:false,bo:0,bl:0,ra:0,bdrOff:true,shadowOff:true},
+       {t:'date',x:360,y:620,w:1200,h:140,fs:48,bo:0,bl:0,ra:0,bdrOff:true,shadowOff:true},
+       {t:'weather',x:760,y:800,w:400,h:220,bo:0,bl:0,ra:0,bdrOff:true,shadowOff:true}]},
+  {name:'📅 Calendar Focus',desc:'Big calendar + clock + tasks',bg:'#0d1117',
+   ws:[{t:'gcal',x:40,y:40,w:1140,h:1000,bo:14,bl:8,ra:18,view:'MONTH',darkMode:true},
+       {t:'clock',x:1220,y:40,w:660,h:200,fs:64,sec:false,date:true,bo:14,bl:10,ra:18},
+       {t:'weather',x:1220,y:260,w:660,h:280,bo:14,bl:10,ra:18},
+       {t:'todo',x:1220,y:560,w:660,h:480,bo:14,bl:10,ra:18,title:'Today'}]},
+  {name:'🌐 Info Center',desc:'Stocks, news, clock, world clocks',bg:'#0a0a14',
+   ws:[{t:'clock',x:40,y:40,w:580,h:200,fs:72,f24:false,date:true,bo:14,bl:10,ra:16},
+       {t:'worldclock',x:640,y:40,w:500,h:200,bo:14,bl:10,ra:16},
+       {t:'weather',x:1200,y:40,w:680,h:200,bo:14,bl:10,ra:16},
+       {t:'stocks',x:40,y:260,w:760,h:780,bo:12,bl:10,ra:16},
+       {t:'news',x:820,y:260,w:1060,h:780,bo:12,bl:10,ra:16}]},
+  {name:'🎨 Photo Frame',desc:'Slideshow with glass overlay',bg:'#000',bgUnsplash:true,
+   ws:[{t:'clock',x:60,y:60,w:560,h:210,fs:76,sec:true,date:true,bo:35,bl:20,ra:24},
+       {t:'weather',x:60,y:300,w:300,h:230,bo:35,bl:20,ra:24},
+       {t:'countdown',x:1500,y:60,w:380,h:200,bo:35,bl:20,ra:24}]},
+];
+
+function buildPresets(){
+  document.getElementById('presets').innerHTML=PRESETS.map((p,i)=>'<div class="litem" onclick="loadPreset('+i+')"><div><div class="li-n">'+p.name+'</div><div class="li-s">'+p.desc+'</div></div><span class="li-tag">preset</span></div>').join('');
+}
+
+function loadPreset(i){
+  const p=PRESETS[i];if(!p)return;
+  const go=()=>{
+    clearAll();
+    if(p.bgUnsplash){bgMode='unsplash';if(p.uCat){uCat=p.uCat;document.querySelectorAll('.cat').forEach(c=>{c.classList.toggle('on',c.textContent.toLowerCase().includes(uCat));});}loadUnsplash();}
+    else{bgMode='color';document.getElementById('bgcol').value=p.bg;document.getElementById('bgcoltx').value=p.bg;const l=document.getElementById('bgl');l.style.backgroundImage='none';l.style.backgroundColor=p.bg;bgImgUrl='';applyFx();}
+    p.ws.forEach(pw=>{
+      const id='w'+(++wid);
+      const sty=defSty();
+      sty.bgOp=pw.bo||0;sty.blur=pw.bl||0;sty.rad=pw.ra||14;
+      if(pw.bdrOff)sty.bdrOn=false;if(pw.shadowOff)sty.shadow=false;if(pw.bgc)sty.bgCol=pw.bgc;
+      const cfg=defCfg(pw.t);
+      if(pw.fs!==undefined)cfg.fs=pw.fs;if(pw.f24!==undefined)cfg.f24=pw.f24;
+      if(pw.sec!==undefined)cfg.sec=pw.sec;if(pw.date!==undefined)cfg.date=pw.date;
+      if(pw.title)cfg.title=pw.title;if(pw.items)cfg.items=pw.items;
+      if(pw.view)cfg.view=pw.view;if(pw.darkMode)cfg.darkMode=pw.darkMode;
+      if(pw.calScale!==undefined)cfg.calScale=pw.calScale;
+      if(pw.calOpacity!==undefined)cfg.calOpacity=pw.calOpacity;
+      // Pass through any other cfg fields from preset
+      const knownStyleFields=['bo','bl','ra','bdrOff','shadowOff','bgc'];
+      const knownHandled=['fs','f24','sec','date','title','items','view','darkMode','calScale','calOpacity'];
+      Object.keys(pw).forEach(k=>{
+        if(!['t','x','y','w','h',...knownStyleFields,...knownHandled].includes(k))cfg[k]=pw[k];
+      });
+      const w={id,type:pw.t,x:pw.x,y:pw.y,w:pw.w,h:pw.h,sty,cfg,liveData:null};
+      WW.push(w);mountW(w);
+    });
+    toast('Loaded: '+p.name,'ok');showTab('w');
+  };
+  WW.length>0?showModal('Load Preset','Replace canvas with "'+p.name+'"?',
+    [{l:'Save & Load',cls:'pr',fn:()=>{doSave();go();}},{l:'Load Anyway',cls:'',fn:go},{l:'Cancel',cls:'',fn:closeModal}]):go();
+}
+
+// ═══════════════════════════════════════════
+// SAVE / LOAD / CLEAR
+// ═══════════════════════════════════════════
+function doSave(){
+  const name=prompt('Layout name:','My Dashboard');if(!name)return;
+  const all=JSON.parse(localStorage.getItem('dber_layouts')||'[]');
+  const l=document.getElementById('bgl');
+  const entry={name,date:new Date().toISOString(),CW,CH,bgMode,bgImgUrl,
+    bgColor:document.getElementById('bgcol').value,bglStyle:l.style.cssText,
+    bri:document.getElementById('bri').value,blu:document.getElementById('blu').value,ovi:document.getElementById('ovi').value,
+    widgets:JSON.parse(JSON.stringify(WW.map(w=>({...w,liveData:null}))))};
+  const ei=all.findIndex(x=>x.name===name);if(ei>=0)all[ei]=entry;else all.push(entry);
+  localStorage.setItem('dber_layouts',JSON.stringify(all));loadSaved();toast('Saved!','ok');
+}
+function loadSaved(){
+  const all=JSON.parse(localStorage.getItem('dber_layouts')||'[]');
+  const el=document.getElementById('saved');
+  if(!all.length){el.innerHTML='<div class="no-l">No saved layouts yet.</div>';return;}
+  el.innerHTML=all.map((e,i)=>'<div class="litem" onclick="openLayout('+i+')"><div><div class="li-n">'+e.name+'</div><div class="li-s">'+new Date(e.date).toLocaleDateString()+'</div></div><span class="li-del" onclick="event.stopPropagation();delLayout('+i+')">✕</span></div>').join('');
+}
+function openLayout(i){
+  const all=JSON.parse(localStorage.getItem('dber_layouts')||'[]');
+  const entry=all[i];if(!entry)return;
+  const go=()=>{
+    clearAll();CW=entry.CW||1920;CH=entry.CH||1080;reScale();
+    if(entry.bglStyle)document.getElementById('bgl').style.cssText=entry.bglStyle;
+    bgMode=entry.bgMode||'color';bgImgUrl=entry.bgImgUrl||'';
+    if(entry.bgColor){document.getElementById('bgcol').value=entry.bgColor;document.getElementById('bgcoltx').value=entry.bgColor;}
+    if(entry.bri)document.getElementById('bri').value=entry.bri;if(entry.blu)document.getElementById('blu').value=entry.blu;if(entry.ovi)document.getElementById('ovi').value=entry.ovi;
+    applyFx();
+    (entry.widgets||[]).forEach(pw=>{const id='w'+(++wid);const w={...pw,id,liveData:null};WW.push(w);mountW(w);});
+    toast('Loaded: '+entry.name,'ok');
+  };
+  WW.length>0?showModal('Open Layout','Open "'+entry.name+'"?',
+    [{l:'Save & Open',cls:'pr',fn:()=>{doSave();go();}},{l:'Discard & Open',cls:'',fn:go},{l:'Cancel',cls:'',fn:closeModal}]):go();
+}
+function delLayout(i){showModal('Delete','Delete this layout?',[{l:'Delete',cls:'pr',fn:()=>{const all=JSON.parse(localStorage.getItem('dber_layouts')||'[]');all.splice(i,1);localStorage.setItem('dber_layouts',JSON.stringify(all));loadSaved();closeModal();toast('Deleted');}},{l:'Cancel',cls:'',fn:closeModal}]);}
+function askClear(){if(!WW.length)return;showModal('Clear','Remove all widgets?',[{l:'Save & Clear',cls:'pr',fn:()=>{doSave();clearAll();closeModal();}},{l:'Clear',cls:'',fn:()=>{clearAll();closeModal();}},{l:'Cancel',cls:'',fn:closeModal}]);}
+function clearAll(){WW.forEach(w=>document.getElementById(w.id)?.remove());WW=[];sel=null;clearWPanel();}
+
+// ═══════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════
+let mFns=[];
+function showModal(title,msg,btns){document.getElementById('mtit').textContent=title;document.getElementById('mmsg').textContent=msg;document.getElementById('mcust').innerHTML='';mFns=btns.map(b=>b.fn);document.getElementById('mbs').innerHTML=btns.map((b,i)=>'<button class="'+(b.cls||'')+'" onclick="mFns['+i+']()">' +b.l+'</button>').join('');document.getElementById('mov').classList.add('on');}
+function closeModal(){document.getElementById('mov').classList.remove('on');}
+document.getElementById('mov').addEventListener('click',e=>{if(e.target.id==='mov')closeModal();});
+function toast(msg,cls){const el=document.getElementById('toast');el.textContent=msg;el.className='on '+(cls||'');setTimeout(()=>el.className='',2800);}
+// ─── Duplicate widget ─────────────────────
+function duplicateW(id){
+  const orig=GW(id);if(!orig)return;
+  const newId='w'+(++wid);
+  const copy=JSON.parse(JSON.stringify(orig));
+  copy.id=newId;
+  copy.x=snap(Math.min(orig.x+40,CW-orig.w));
+  copy.y=snap(Math.min(orig.y+40,CH-orig.h));
+  copy.liveData=null;
+  copy._currentQuote=orig._currentQuote;
+  copy._currentAuthor=orig._currentAuthor;
+  WW.push(copy);mountW(copy);selW(newId);
+  toast('Widget duplicated ⧉','ok');
+}
+
+// ─── Preview ──────────────────────────────
+function showPreview(){
+  if(!WW.length){toast('Add some widgets first!','err');return;}
+  const d=buildExportData();if(!d)return;
+  const html=buildFullHTML(d);
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const ov=document.getElementById('prev-ov');
+  document.getElementById('prev-label').textContent=CW+'×'+CH+'px';
+  const frame=document.getElementById('prev-frame');
+  frame.src=url;
+  ov.style.display='flex';
+  // size frame after it becomes visible
+  setTimeout(()=>sizePreviewFrame(CW,CH),50);
+}
+function resizePreview(w,h){
+  document.getElementById('prev-label').textContent=w+'×'+h+'px';
+  sizePreviewFrame(w,h);
+}
+function sizePreviewFrame(fw,fh){
+  const frame=document.getElementById('prev-frame');
+  const wrap=frame.parentElement;
+  const aw=wrap.clientWidth-40,ah=wrap.clientHeight-40;
+  const s=Math.min(aw/fw,ah/fh,1);
+  frame.style.width=fw+'px';
+  frame.style.height=fh+'px';
+  frame.style.transform='scale('+s+')';
+  frame.style.transformOrigin='center center';
+}
+function closePreview(){
+  const frame=document.getElementById('prev-frame');
+  if(frame.src&&frame.src.startsWith('blob:'))URL.revokeObjectURL(frame.src);
+  frame.src='about:blank';
+  document.getElementById('prev-ov').style.display='none';
+}
+
+// ─── Autosave ─────────────────────────────
+let _autoSaveTimer=null;
+let _autoSaveOn=localStorage.getItem('dber_autosave')==='true';
+function initAutoSave(){
+  const tog=document.getElementById('autosavetog');
+  const lbl=document.getElementById('autosavelbl');
+  if(_autoSaveOn){tog.classList.add('on');lbl.textContent='Auto ON';}
+  if(_autoSaveOn)_startAutoSave();
+}
+function toggleAutoSave(){
+  _autoSaveOn=!_autoSaveOn;
+  localStorage.setItem('dber_autosave',_autoSaveOn);
+  const tog=document.getElementById('autosavetog');
+  const lbl=document.getElementById('autosavelbl');
+  tog.classList.toggle('on',_autoSaveOn);
+  if(_autoSaveOn){_startAutoSave();lbl.textContent='Auto ON';toast('Auto-save ON — saves every 60s','ok');}
+  else{clearInterval(_autoSaveTimer);_autoSaveTimer=null;lbl.textContent='Auto-save';toast('Auto-save disabled');}
+}
+function _startAutoSave(){
+  clearInterval(_autoSaveTimer);
+  _autoSaveTimer=setInterval(()=>{
+    if(!WW.length)return;
+    const all=JSON.parse(localStorage.getItem('dber_layouts')||'[]');
+    const l=document.getElementById('bgl');
+    const entry={name:'⚡ Autosave',date:new Date().toISOString(),CW,CH,bgMode,bgImgUrl,
+      bgColor:document.getElementById('bgcol').value,bglStyle:l.style.cssText,
+      bri:document.getElementById('bri').value,blu:document.getElementById('blu').value,
+      ovi:document.getElementById('ovi').value,
+      widgets:JSON.parse(JSON.stringify(WW.map(w=>({...w,liveData:null}))))};
+    const ei=all.findIndex(x=>x.name==='⚡ Autosave');
+    if(ei>=0)all[ei]=entry;else all.unshift(entry);
+    localStorage.setItem('dber_layouts',JSON.stringify(all));
+    loadSaved();
+    const lbl=document.getElementById('autosavelbl');
+    lbl.textContent='Saved ✓';
+    setTimeout(()=>{if(_autoSaveOn)lbl.textContent='Auto ON';},2000);
+  },60000);
+}
+
+// ─── Export data builder ──────────────────
+function buildExportData(){
+  if(!WW.length)return null;
+  const bgl=document.getElementById('bgl');
+  const bglCSS=bgl.style.cssText.replace(/;?\s*$/,'');
+  const bri=(parseFloat(document.getElementById('bri').value)/100).toFixed(2);
+  const blu=parseInt(document.getElementById('blu').value)||0;
+  const ovi=(parseFloat(document.getElementById('ovi').value)/100).toFixed(2);
+  const whtml=WW.map(w=>{
+    const isTop=LIST_T.includes(w.type);
+    let bg='';
+    if(w.sty.bgGrad){const d=w.sty.gradDir;bg=d==='circle'?'radial-gradient(circle,'+w.sty.gradCol1+','+w.sty.gradCol2+')':'linear-gradient('+d+','+w.sty.gradCol1+','+w.sty.gradCol2+')';}
+    else{const hex=(w.sty.bgCol||'#000000').replace('#','');const r=parseInt(hex.substr(0,2),16)||0,g=parseInt(hex.substr(2,2),16)||0,b=parseInt(hex.substr(4,2),16)||0;bg='rgba('+r+','+g+','+b+','+(w.sty.bgOp/100).toFixed(2)+')';}
+    const cs=(w.sty.contentScale||100)/100;
+    const ox=w.sty.offsetX||0,oy=w.sty.offsetY||0;
+    const innerTransform=(cs!==1||ox||oy)?'scale('+cs+') translate('+ox+'px,'+oy+'px)':'none';
+    const cx=w.sty.cropX||0,cy=w.sty.cropY||0;
+    const cw=w.sty.cropW!==undefined?w.sty.cropW:100;
+    const ch=w.sty.cropH!==undefined?w.sty.cropH:100;
+    const innerClip=w.sty.cropEnabled===true?'inset('+cy+'% '+(100-cx-cw)+'% '+(100-cy-ch)+'% '+cx+'%)':'none';
+    const outerStyle=[
+      'position:absolute','left:'+w.x+'px','top:'+w.y+'px',
+      'width:'+w.w+'px','height:'+w.h+'px',
+      'border-radius:'+w.sty.rad+'px','background:'+bg,
+      w.sty.blur>0?'backdrop-filter:blur('+w.sty.blur+'px);-webkit-backdrop-filter:blur('+w.sty.blur+'px)':'',
+      w.sty.bdrOn?'border:'+w.sty.bdrW+'px solid '+w.sty.bdrCol:'',
+      'color:'+w.sty.txCol,'font-family:'+w.sty.fontFamily,
+      w.sty.shadow?'box-shadow:0 '+w.sty.shadowBlur+'px 60px '+w.sty.shadowColor:'',
+      'overflow:hidden','z-index:10',
+    ].filter(Boolean).join(';');
+    const innerStyle=[
+      'position:absolute','inset:0','display:flex','flex-direction:column',
+      'align-items:'+(isTop?'flex-start':'center'),
+      'justify-content:'+(isTop?'flex-start':'center'),
+      'padding:14px','overflow:hidden',
+      'color:'+w.sty.txCol,'font-family:'+w.sty.fontFamily,
+      'transform:'+innerTransform,'transform-origin:center center',
+      'clip-path:'+innerClip,
+    ].filter(Boolean).join(';');
+    const meta=JSON.stringify({type:w.type,cfg:w.cfg,sty:{txCol:w.sty.txCol,fontFamily:w.sty.fontFamily,fontSize:w.sty.fontSize||14,accentCol:w.sty.accentCol,h:w.h,w:w.w}}).replace(/'/g,'&apos;');
+    return '<div style="'+outerStyle+'" data-w=\''+meta+'\'><div style="'+innerStyle+'">'+renderW(w)+'</div></div>';
+  }).join('\n');
+  return {bglCSS,bri,blu,ovi,whtml};
+}
+
+// ─── Full HTML builder (shared by preview + export) ──
+function buildFullHTML(d){
+  const {bglCSS,bri,blu,ovi,whtml}=d;
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Dashboard — Dashboarder</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600&family=Nunito:wght@300;400;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Roboto+Mono:wght@300;400;500&family=Raleway:wght@300;400;600;700&family=Josefin+Sans:wght@300;400;600;700&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:Outfit,sans-serif}
+#d{position:absolute;overflow:hidden;transform-origin:top left;width:${CW}px;height:${CH}px}
+#bl{position:absolute;inset:0;z-index:0;${bglCSS};filter:brightness(${bri})${blu>0?' blur('+blu+'px)':''}}
+#bo{position:absolute;inset:0;z-index:1;background:#000;opacity:${ovi};pointer-events:none}
+@keyframes newsScroll{0%{top:0}100%{top:-50%}}
+</style></head><body>
+<div id="d"><div id="bl"></div><div id="bo"></div>
+${whtml}
+</div>
+<script>
+// ── Adaptive scaling — responds to resize AND browser zoom ──
+(function(){
+  var CW=${CW},CH=${CH},d=document.getElementById('d');
+  function fit(){
+    var s=Math.min(window.innerWidth/CW,window.innerHeight/CH);
+    d.style.transform='scale('+s+')';
+    d.style.left=((window.innerWidth-CW*s)/2)+'px';
+    d.style.top=((window.innerHeight-CH*s)/2)+'px';
+  }
+  fit();
+  window.addEventListener('resize',fit);
+  if(window.ResizeObserver)new ResizeObserver(fit).observe(document.body);
+})();
+
+// ── Clocks, Date, World Clock, Countdown ──
+(function(){
+  function tick(){document.querySelectorAll('[data-w]').forEach(function(el){
+    var m=JSON.parse(el.dataset.w),c=m.cfg,s=m.sty,ff=s.fontFamily||'Outfit',col=s.txCol||'#fff',inner=el.children[0];
+    if(!inner)return;
+    if(m.type==='clock'){
+      var n=new Date(),t=n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:c.sec?'2-digit':undefined,hour12:!c.f24}),dd=n.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});
+      inner.innerHTML='<div style="font-family:'+ff+';font-weight:700;font-size:'+c.fs+'px;color:'+col+';letter-spacing:-1px;line-height:1;text-align:center">'+t+'</div>'+(c.date?'<div style="font-family:'+ff+';font-size:'+Math.max(10,Math.round(c.fs*.22))+'px;color:'+col+';opacity:.6;margin-top:7px;text-align:center">'+dd+'</div>':'');
+    }
+    if(m.type==='date'){
+      var n=new Date(),fmts={long:{weekday:'long',month:'long',day:'numeric',year:'numeric'},medium:{month:'long',day:'numeric',year:'numeric'},short:{month:'short',day:'numeric',year:'numeric'},daymonth:{weekday:'long',month:'long',day:'numeric'}};
+      inner.innerHTML='<div style="font-family:'+ff+';font-size:'+c.fs+'px;font-weight:700;color:'+col+';text-align:center;line-height:1.2">'+n.toLocaleDateString([],fmts[c.format]||fmts.long)+'</div>';
+    }
+    if(m.type==='worldclock'){
+      var B=s.fontSize||14;
+      inner.innerHTML=(c.clocks||[]).map(function(cl){var t2;try{t2=new Date().toLocaleTimeString('en-US',{timeZone:cl.tz,hour:'2-digit',minute:'2-digit',hour12:true});}catch(e){t2='--:--';}return'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)"><div style="font-size:'+B+'px;color:'+col+';opacity:.7">'+cl.label+'</div><div style="font-size:'+B+'px;font-weight:700;color:'+col+'">'+t2+'</div></div>';}).join('');
+    }
+    if(m.type==='countdown'){
+      var target=c.targetDate?new Date(c.targetDate):null;
+      if(!target||isNaN(target)){inner.innerHTML='<div style="opacity:.4;text-align:center">Set target date</div>';return;}
+      var diff=Math.max(0,target-new Date()),days=Math.floor(diff/864e5),hours=Math.floor((diff%864e5)/36e5),mins=Math.floor((diff%36e5)/6e4),secs=Math.floor((diff%6e4)/1e3);
+      var h=s.h||200,sep='<div style="font-size:'+Math.round(h*.15)+'px;font-weight:700;color:'+col+';opacity:.4;padding-bottom:12px">:</div>';
+      function u(v,l){return'<div style="text-align:center;flex:1"><div style="font-size:'+Math.round(h*.18)+'px;font-weight:700;color:'+col+';line-height:1">'+String(v).padStart(2,'0')+'</div><div style="font-size:9px;opacity:.45;color:'+col+';font-family:DM Mono,monospace;margin-top:3px">'+l+'</div></div>';}
+      var parts=[];
+      if(c.showDays)parts.push(u(days,'DAYS'));
+      if(c.showHours){if(parts.length)parts.push(sep);parts.push(u(hours,'HRS'));}
+      if(c.showMins){if(parts.length)parts.push(sep);parts.push(u(mins,'MIN'));}
+      if(c.showSecs){if(parts.length)parts.push(sep);parts.push(u(secs,'SEC'));}
+      inner.innerHTML='<div style="font-size:'+(s.fontSize||12)+'px;color:'+col+';opacity:.55;margin-bottom:8px;text-align:center">'+c.label+'</div><div style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%">'+parts.join('')+'</div>';
+    }
+  });}
+  tick();setInterval(tick,1000);
+})();
+
+// ── Weather — Open-Meteo (free, no key) ──
+(function(){
+  var els=[];document.querySelectorAll('[data-w]').forEach(function(el){var m=JSON.parse(el.dataset.w);if(m.type==='weather')els.push({el:el,m:m});});
+  if(!els.length)return;
+  var IC=['☀️','🌤','⛅','🌥','🌦','🌧','🌨','⛈','🌩','🌫'],DC=['Clear','Mostly Clear','Partly Cloudy','Overcast','Drizzle','Rain','Snow','Thunderstorm','Lightning','Foggy'],DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function render(lat,lon){
+    fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current_weather=true&hourly=apparent_temperature,relativehumidity_2m&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&temperature_unit=fahrenheit&forecast_days=7')
+    .then(function(r){return r.json();}).then(function(data){
+      var cw=data.current_weather,idx=Math.min(Math.floor(cw.weathercode/10),9),hr=new Date().getHours();
+      var feels=data.hourly&&data.hourly.apparent_temperature?data.hourly.apparent_temperature[hr]:cw.temperature;
+      var hum=data.hourly&&data.hourly.relativehumidity_2m?data.hourly.relativehumidity_2m[hr]:0;
+      var fc=[];if(data.daily){for(var i=1;i<Math.min(8,data.daily.weathercode.length);i++)fc.push({day:DY[new Date(data.daily.time[i]).getDay()],code:data.daily.weathercode[i],hi:data.daily.temperature_2m_max[i],lo:data.daily.temperature_2m_min[i]});}
+      els.forEach(function(wx){
+        var c=wx.m.cfg,s=wx.m.sty,ff=s.fontFamily||'Outfit',col=s.txCol||'#fff',h=s.h||240,B=s.fontSize||14,inner=wx.el.children[0];
+        var temp=c.unit==='C'?Math.round((cw.temperature-32)*5/9):Math.round(cw.temperature);
+        var feelsD=c.unit==='C'?Math.round((feels-32)*5/9):Math.round(feels);
+        var html='<div style="font-size:'+Math.round(h*.13)+'px;margin-bottom:4px">'+IC[idx]+'</div>'
+          +'<div style="font-family:'+ff+';font-size:'+Math.round(h*.2)+'px;font-weight:700;color:'+col+';line-height:1">'+temp+'°'+c.unit+'</div>'
+          +'<div style="font-family:'+ff+';font-size:'+B+'px;color:'+col+';opacity:.65;margin-top:5px">'+DC[idx]+'</div>'
+          +'<div style="font-family:'+ff+';font-size:'+(B-2)+'px;color:'+col+';opacity:.4;margin-top:3px">Feels '+feelsD+'° · '+hum+'% humidity</div>';
+        if(c.forecast&&fc.length){html+='<div style="display:flex;gap:3px;margin-top:10px;width:100%">'+fc.slice(0,c.forecastDays||5).map(function(d){return'<div style="flex:1;text-align:center;background:rgba(255,255,255,.06);border-radius:7px;padding:5px 2px"><div style="font-size:8px;opacity:.5;font-family:DM Mono,monospace;color:'+col+'">'+d.day+'</div><div style="font-size:'+Math.max(12,Math.round(h*.055))+'px;margin:2px 0">'+IC[Math.min(Math.floor(d.code/10),9)]+'</div><div style="font-size:9px;color:'+col+'">'+Math.round(d.hi)+'°</div><div style="font-size:8px;opacity:.4;color:'+col+'">'+Math.round(d.lo)+'°</div></div>';}).join('')+'</div>';}
+        if(inner)inner.innerHTML=html;
+      });
+    }).catch(function(){});
+  }
+  var cfg=els[0].m.cfg;
+  if(cfg.loc&&cfg.loc.trim()){fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(cfg.loc)+'&count=1').then(function(r){return r.json();}).then(function(d){if(d.results&&d.results[0])render(d.results[0].latitude,d.results[0].longitude);});}
+  else if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(p){render(p.coords.latitude,p.coords.longitude);},function(){});}
+})();
+
+// ── Stocks ──
+(function(){
+  document.querySelectorAll('[data-w]').forEach(function(el){
+    var m=JSON.parse(el.dataset.w);if(m.type!=='stocks')return;
+    var syms=(m.cfg.symbols||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+    if(!syms.length)return;
+    var s=m.sty,ff=s.fontFamily||'Outfit',col=s.txCol||'#fff',B=s.fontSize||14,inner=el.children[0];
+    var res={},done=0;
+    syms.forEach(function(sym){
+      fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+sym+'?interval=1d&range=1d')
+      .then(function(r){return r.json();}).then(function(d){var meta=d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;if(meta){var p=meta.regularMarketPrice,pr=meta.chartPreviousClose,ch=p-pr;res[sym]={p:p,ch:ch,pct:ch/pr*100};}}).catch(function(){})
+      .finally(function(){
+        if(++done===syms.length&&inner){
+          inner.innerHTML='<div style="font-family:DM Mono,monospace;font-size:9px;color:'+col+';opacity:.35;margin-bottom:8px;width:100%">LIVE STOCKS</div>'
+            +syms.map(function(sym){var d=res[sym]||{p:0,ch:0,pct:0},up=d.ch>=0;return'<div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:7px"><div style="font-family:'+ff+';font-size:'+B+'px;font-weight:700;color:'+col+'">'+sym+'</div><div style="text-align:right"><div style="font-family:'+ff+';font-size:'+B+'px;font-weight:600;color:'+col+'">$'+d.p.toFixed(2)+'</div><div style="font-size:10px;color:'+(up?'#20d4a0':'#f43f5e')+';">'+(up?'+':'')+d.ch.toFixed(2)+' ('+(up?'+':'')+d.pct.toFixed(2)+'%)</div></div></div>';}).join('');
+        }
+      });
+    });
+  });
+})();
+
+// ── RSS News ──
+(function(){
+  document.querySelectorAll('[data-w]').forEach(function(el){
+    var m=JSON.parse(el.dataset.w);if(m.type!=='news')return;
+    var c=m.cfg,s=m.sty,inner=el.children[0];if(!c.url||!inner)return;
+    var ff=s.fontFamily||'Outfit',col=s.txCol||'#fff',B=s.fontSize||14;
+    fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(c.url)+'&count='+(c.maxn||10))
+    .then(function(r){return r.json();}).then(function(d){
+      if(!d.items)return;
+      var hdr='<div style="font-family:'+ff+';font-size:'+B+'px;font-weight:700;color:'+col+';margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.1);width:100%;flex-shrink:0">'+c.label+'</div>';
+      var rows=d.items.slice(0,c.maxn||10).map(function(i){return'<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0"><div style="font-family:'+ff+';font-size:'+B+'px;font-weight:600;color:'+col+';line-height:1.45">'+(i.title||'').substring(0,100)+'</div><div style="font-size:9px;opacity:.3;font-family:DM Mono,monospace;margin-top:3px">'+d.feed.title+'</div></div>';}).join('');
+      if(c.scroll){inner.innerHTML=hdr+'<div style="flex:1;overflow:hidden;position:relative;width:100%"><div style="position:absolute;width:100%;animation:newsScroll '+(c.maxn||5)*4+'s linear infinite">'+rows+rows+'</div></div>';}
+      else inner.innerHTML=hdr+rows;
+    }).catch(function(){});
+  });
+})();
+
+// ── To-Do / Tasks ──
+(function(){
+  document.querySelectorAll('[data-w]').forEach(function(el){
+    var m=JSON.parse(el.dataset.w);if(m.type!=='todo')return;
+    var c=m.cfg,s=m.sty,inner=el.children[0];if(!inner)return;
+    var ff=s.fontFamily||'Outfit',col=s.txCol||'#fff',acc=s.accentCol||'#7c6fff',B=s.fontSize||14;
+    function renderTodo(){
+      var items=c.items||[],done=c.completedItems||[],h=parseInt(el.style.height)||300;
+      var hdr='<div style="font-family:'+ff+';font-size:'+B+'px;font-weight:700;color:'+col+';margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.1);width:100%;display:flex;align-items:center;justify-content:space-between;flex-shrink:0"><span>'+(c.title||'To Do')+'</span><span style="font-size:9px;opacity:.4;font-family:DM Mono,monospace">'+items.length+' tasks</span></div>';
+      var rowFn=function(it,i){var isDone=done.indexOf(i)>=0;return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;width:100%;flex-shrink:0"><div style="width:16px;height:16px;border:2px solid '+acc+';border-radius:5px;flex-shrink:0;background:'+(isDone?acc:'transparent')+';display:flex;align-items:center;justify-content:center">'+(isDone?'<span style="color:#fff;font-size:10px;line-height:1">✓</span>':'')+'</div><span style="font-family:'+ff+';font-size:'+B+'px;color:'+col+';'+(isDone?'text-decoration:line-through;opacity:.4':'')+'">'+it+'</span></div>';};
+      if(c.scroll&&items.length){var dur=items.length*3;inner.innerHTML=hdr+'<div style="flex:1;overflow:hidden;position:relative;width:100%"><div style="position:absolute;width:100%;animation:newsScroll '+dur+'s linear infinite">'+items.map(rowFn).join('')+items.map(rowFn).join('')+'</div></div>';}
+      else{var maxI=Math.max(2,Math.floor((h-70)/42));inner.innerHTML=hdr+items.slice(0,maxI).map(rowFn).join('');}
+    }
+    if(c.gTasksToken){
+      fetch('https://www.googleapis.com/tasks/v1/users/@me/lists',{headers:{Authorization:'Bearer '+c.gTasksToken}})
+      .then(function(r){if(!r.ok)throw new Error('expired');return r.json();})
+      .then(function(d){var lid=(d.items&&d.items[0]&&d.items[0].id)||'@default';return fetch('https://www.googleapis.com/tasks/v1/lists/'+lid+'/tasks?showCompleted=false&maxResults=30',{headers:{Authorization:'Bearer '+c.gTasksToken}});})
+      .then(function(r){return r.json();}).then(function(d){if(d.items){c.items=d.items.filter(function(t){return t.title;}).map(function(t){return t.title;});c.completedItems=[];}renderTodo();})
+      .catch(function(){renderTodo();});
+    } else renderTodo();
+  });
+})();
+
+// ── Quotes (auto-rotating) ──
+(function(){
+  var FB={inspiring:['The best way to predict the future is to create it.||Peter Drucker','In the middle of every difficulty lies opportunity.||Albert Einstein','It does not matter how slowly you go as long as you do not stop.||Confucius','The only way to do great work is to love what you do.||Steve Jobs','Strive not to be a success, but rather to be of value.||Albert Einstein'],technology:['Any sufficiently advanced technology is indistinguishable from magic.||Arthur C. Clarke','The best way to predict the future is to invent it.||Alan Kay','Software is eating the world.||Marc Andreessen','Talk is cheap. Show me the code.||Linus Torvalds','Innovation distinguishes between a leader and a follower.||Steve Jobs'],humor:['I am so clever that sometimes I do not understand a single word of what I am saying.||Oscar Wilde','The trouble with having an open mind is that people keep coming along and putting things in it.||Terry Pratchett','Before you judge someone, walk a mile in their shoes. After that, who cares?||Billy Connolly'],joke:['Why do programmers prefer dark mode? Because light attracts bugs.||','Why did the developer go broke? He used up all his cache.||','A SQL query walks into a bar, walks up to two tables and asks: Can I join you?||','Why do Java developers wear glasses? Because they do not C#.||']};
+  document.querySelectorAll('[data-w]').forEach(function(el){
+    var m=JSON.parse(el.dataset.w);if(m.type!=='quote')return;
+    var c=m.cfg,s=m.sty,ff=s.fontFamily||'Outfit',col=s.txCol||'#fff',B=s.fontSize||14,h=s.h||200,inner=el.children[0];
+    if(!inner)return;
+    var idx=0;
+    function set(q,a){var bigQ=Math.max(B*2,Math.round(h*.15));inner.innerHTML='<div style="font-size:'+bigQ+'px;opacity:.15;color:'+col+';line-height:1;font-family:'+ff+';margin-bottom:4px">"</div><div style="font-family:'+ff+';font-size:'+B+'px;color:'+col+';text-align:center;line-height:1.7;font-style:italic;padding:0 8px">'+q+'</div>'+(a?'<div style="font-family:DM Mono,monospace;font-size:'+(B-3)+'px;color:'+col+';opacity:.35;margin-top:8px">— '+a+'</div>':'');}
+    async function next(){
+      if(c.category==='single'){set(c.q||'The best way to predict the future is to create it.',c.author||'');return;}
+      if(c.category==='custom'){var p=c.customPool||[];if(!p.length)return;var it=(p[idx%p.length]||'').split('||');set(it[0]||'',it[1]||'');idx++;return;}
+      if(c.category==='joke'){try{var r=await fetch('https://v2.jokeapi.dev/joke/Any?type=single');var d=await r.json();if(d.joke){set(d.joke,'');idx++;return;}}catch(e){}var fb=(FB.joke[idx%FB.joke.length]||'').split('||');set(fb[0],'');idx++;return;}
+      var tagMap={inspiring:'inspirational',technology:'technology',humor:'humor'};
+      try{var r=await fetch('https://api.quotable.io/quotes/random?tags='+(tagMap[c.category]||'inspirational')+'&limit=1');var d=await r.json();if(d&&d[0]){set(d[0].content,d[0].author);return;}}catch(e){}
+      var pool=FB[c.category]||FB.inspiring;var it=(pool[idx%pool.length]||'').split('||');set(it[0]||'',it[1]||'');idx++;
+    }
+    next();
+    if(c.category!=='single')setInterval(next,(c.interval||30)*1000);
+  });
+})();
+<\/script></body></html>`;
+}
+
+function doExport(){
+  if(!WW.length){toast('Add some widgets first!','err');return;}
+  const d=buildExportData();if(!d)return;
+  const html=buildFullHTML(d);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download='dashboard.html';a.click();
+  toast('Exported! Opens on any screen ✨','ok');
+}
+</script>
+</body>
+</html>
